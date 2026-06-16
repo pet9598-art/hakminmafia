@@ -396,7 +396,16 @@
                     catch (e) { await signInAnonymously(auth); }
                 } else { await signInAnonymously(auth); }
                 
-                myUid = auth.currentUser.uid;
+                // [수정된 부분] 멀티탭(혼자서 여러 창) 테스트를 위한 고유 세션 ID 분리
+                let tabId = sessionStorage.getItem('mafia_tab_id');
+                if (!tabId) {
+                    tabId = Math.random().toString(36).substring(2, 9);
+                    sessionStorage.setItem('mafia_tab_id', tabId);
+                }
+                
+                // 파이어베이스 고유 ID에 탭 ID를 결합하여 완전한 독립 유저로 인식되게 함
+                myUid = auth.currentUser.uid + "_" + tabId;
+                
                 document.getElementById('loading-auth').classList.add('hidden');
                 document.getElementById('auth-forms').classList.remove('hidden');
             } catch (error) {
