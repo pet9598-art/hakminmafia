@@ -180,8 +180,12 @@
                     </div>
                     <div id="phase-desc" class="text-gray-300 text-sm mt-1 ml-13 font-medium">코드를 공유하여 친구들을 초대하세요.</div>
                 </div>
-                <div class="text-right bg-black/40 px-6 py-2 rounded-2xl border border-white/10 shadow-inner">
-                    <div class="text-xs text-gray-400 font-bold tracking-wider mb-1">남은 시간</div>
+                <!-- Host Quick Skip UI (Only visible to host) -->
+                <div class="text-right bg-black/40 px-6 py-2 rounded-2xl border border-white/10 shadow-inner flex flex-col items-end">
+                    <div class="flex items-center gap-3 mb-1">
+                        <button id="host-quick-skip-btn" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 rounded text-[10px] font-bold text-white hidden btn-press shadow-md"><i class="fas fa-forward"></i> 방장 스킵</button>
+                        <div class="text-xs text-gray-400 font-bold tracking-wider">남은 시간</div>
+                    </div>
                     <div id="timer-display" class="text-3xl font-mono text-yellow-400 font-black tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">--:--</div>
                 </div>
             </div>
@@ -271,7 +275,7 @@
                             <div id="private-result-text" class="text-base text-white font-medium"></div>
                         </div>
 
-                        <!-- Host Controls -->
+                        <!-- Host Controls in Result Panel -->
                         <div class="mt-8 flex justify-center gap-3">
                             <button id="host-skip-phase-btn" class="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 rounded-xl text-sm text-white font-bold hidden btn-press border border-gray-600"><i class="fas fa-forward mr-2"></i>스킵</button>
                             <button id="host-reset-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-bold hidden shadow-lg shadow-red-500/30 btn-press"><i class="fas fa-undo mr-2"></i>대기실 복귀</button>
@@ -290,7 +294,7 @@
             
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900/40">
                 <!-- Chat messages -->
-                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">채팅 내역이 보호되고 있습니다.</div>
+                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">!투표 닉네임 / !능력 닉네임 사용 가능</div>
             </div>
 
             <!-- Chat Overlay -->
@@ -305,7 +309,7 @@
 
             <div class="p-4 border-t border-gray-700/50 bg-gray-800/80 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.2)]">
                 <form id="chat-form" class="flex gap-2">
-                    <input type="text" id="chat-input" class="flex-1 bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder-gray-500 shadow-inner" placeholder="메시지 입력..." autocomplete="off">
+                    <input type="text" id="chat-input" class="flex-1 bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder-gray-500 shadow-inner" placeholder="메시지 입력 (!명령어 가능)" autocomplete="off">
                     <button type="submit" class="bg-blue-600 hover:bg-blue-500 w-12 rounded-xl text-white flex items-center justify-center btn-press shadow-md shadow-blue-500/20"><i class="fas fa-paper-plane"></i></button>
                 </form>
             </div>
@@ -396,14 +400,11 @@
                     catch (e) { await signInAnonymously(auth); }
                 } else { await signInAnonymously(auth); }
                 
-                // [수정된 부분] 멀티탭(혼자서 여러 창) 테스트를 위한 고유 세션 ID 분리
                 let tabId = sessionStorage.getItem('mafia_tab_id');
                 if (!tabId) {
                     tabId = Math.random().toString(36).substring(2, 9);
                     sessionStorage.setItem('mafia_tab_id', tabId);
                 }
-                
-                // 파이어베이스 고유 ID에 탭 ID를 결합하여 완전한 독립 유저로 인식되게 함
                 myUid = auth.currentUser.uid + "_" + tabId;
                 
                 document.getElementById('loading-auth').classList.add('hidden');
@@ -475,14 +476,18 @@
                 if (isHost && !hostLoopInterval) startHostLoop();
                 if (!isHost && hostLoopInterval) { clearInterval(hostLoopInterval); hostLoopInterval = null; }
 
+                // 방장 전용 UI 완벽 분리
                 document.getElementById('host-settings-area').classList.toggle('hidden', !isHost);
                 document.getElementById('start-game-btn').classList.toggle('hidden', !isHost);
+                document.getElementById('host-quick-skip-btn').classList.toggle('hidden', !isHost);
+                
+                // 참가자 전용 UI 분리
                 document.getElementById('player-ready-area').classList.toggle('hidden', isHost);
                 document.getElementById('ready-btn').classList.toggle('hidden', isHost);
                 document.getElementById('host-skip-phase-btn').classList.toggle('hidden', !isHost);
                 
                 ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).disabled = !isHost; });
-                validateHostSettings(); 
+                if(isHost) validateHostSettings(); 
                 updatePhaseUI();
             });
 
@@ -531,7 +536,6 @@
                         div.className = 'text-center my-4';
                         div.innerHTML = `<span class="inline-block bg-black/40 border border-yellow-500/30 text-yellow-400 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm"><i class="fas fa-bell mr-1"></i>${msg.text}</span>`;
                     } else {
-                        // Check if previous message was from same user to group them
                         const prevMsg = idx > 0 ? msgs[idx-1] : null;
                         const isSameUser = prevMsg && prevMsg.uid === msg.uid && !isSystem;
                         
@@ -602,6 +606,11 @@
         window.addEventListener('touchend', hideRole);
 
         // --- Visual & Phase Router ---
+        const elLobbyPanel = document.getElementById('lobby-panel');
+        const elActionPanel = document.getElementById('action-panel');
+        const elResultPanel = document.getElementById('result-panel');
+        let selectedTarget = null;
+
         function updatePhaseUI() {
             const phaseInfo = {
                 'lobby': { t: '대기실', i: 'fa-coffee', bg: 'bg-lobby', vIcon: 'fa-shield-alt text-white opacity-[0.03]' },
@@ -720,7 +729,7 @@
 
         document.getElementById('ready-btn').addEventListener('click', async () => { await updateDoc(doc(PLAYERS_COL, myUid), { isReady: !isReady }); });
 
-        // Host validation
+        // Host validation (강제 시작 기능 활성화)
         ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).addEventListener('input', validateHostSettings); });
         function validateHostSettings() {
             if(!isHost) return;
@@ -733,9 +742,16 @@
             let readyCount = 0; let nonHostCount = 0;
             playersList.forEach(pl => { if (pl.uid !== myUid) { nonHostCount++; if (pl.isReady) readyCount++; } });
 
-            if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 인원수보다 많습니다!</span>`; startBtn.disabled = true; } 
-            else if (readyCount < nonHostCount && nonHostCount > 0) { infoEl.innerHTML = `<span class="text-yellow-400">시민 ${citizenCount}명 배정 예정 (레디 대기: ${readyCount}/${nonHostCount})</span>`; startBtn.disabled = true; } 
-            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시작 가능! (시민 ${citizenCount}명 자동 배정)</span>`; startBtn.disabled = false; }
+            if (totalSpecial > totalPlayers) { 
+                infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 인원수보다 많습니다!</span>`; 
+                startBtn.disabled = true; 
+            } else if (readyCount < nonHostCount && nonHostCount > 0) { 
+                infoEl.innerHTML = `<span class="text-yellow-400">대기 인원: ${readyCount}/${nonHostCount} (강제 시작 가능)</span>`; 
+                startBtn.disabled = false; // 방장 맘대로 강제 시작 허용
+            } else { 
+                infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시작 가능! (시민 ${citizenCount}명 자동 배정)</span>`; 
+                startBtn.disabled = false; 
+            }
         }
 
         // Host Engine
@@ -768,7 +784,9 @@
             await sysChat("방장이 게임을 초기화했습니다."); await changePhase('lobby', 0, "새 게임을 준비합니다.");
         });
 
+        // Quick Skip & Normal Skip bindings
         document.getElementById('host-skip-phase-btn').addEventListener('click', () => { if (isHost) executePhaseTransition(); });
+        document.getElementById('host-quick-skip-btn').addEventListener('click', () => { if (isHost) executePhaseTransition(); });
 
         function startHostLoop() {
             if (hostLoopInterval) clearInterval(hostLoopInterval);
@@ -783,7 +801,7 @@
             if (p === 'day_discuss') { await clearActions(); await changePhase('day_vote', 30, "투표 시간이 되었습니다.\n의심되는 사람을 처형대 위에 세우세요."); } 
             else if (p === 'day_vote') { await calculateDayVote(); } 
             else if (p === 'day_soldier') { await calculateSoldier(); } 
-            else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n마피아는 고개를 들고 대상을 지목하세요."); } 
+            else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n특수직업들은 행동을 선택하세요."); } 
             else if (p === 'night_action') { await calculateNightActions(); } 
             else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 180, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론하세요."); }
         }
@@ -874,8 +892,11 @@
         }
 
         async function checkWinCondition() {
-            const snap = await getDocs(PLAYERS_COL); let mCount = 0, cCount = 0;
-            snap.forEach(doc => { const p = doc.data(); if (p.isAlive) { p.role === '마피아' ? mCount++ : cCount++; } });
+            const snap = await getDocs(PLAYERS_COL); let mCount = 0, cCount = 0, total = 0;
+            snap.forEach(doc => { const p = doc.data(); total++; if (p.isAlive) { p.role === '마피아' ? mCount++ : cCount++; } });
+
+            // 3명 이하의 혼자 테스트 모드일 경우 승리 조건 발동 무시 (밤 스킬 테스트용)
+            if (total <= 3 && gameState.phase !== 'lobby') return false; 
 
             if (mCount === 0) {
                 await changePhase('game_over', 0, "모든 마피아가 소탕되었습니다.\n🎉 시민팀의 승리! 🎉"); return true;
@@ -884,10 +905,33 @@
             } return false;
         }
 
-        // Chat
+        // Chat & Commands
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault(); const text = document.getElementById('chat-input').value.trim();
-            if (!text || amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked) return;
+            if (!text) return;
+
+            // 채팅 명령어 시스템 (!투표, !능력)
+            if (text.startsWith('!투표 ')) {
+                const tName = text.replace('!투표 ', '').trim();
+                const targetP = playersList.find(p => p.name === tName && p.isAlive);
+                if (targetP && gameState.phase === 'day_vote' && !amIDead) {
+                    await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: targetP.uid });
+                    showToast(`[채팅 시스템] ${tName}님에게 투표했습니다.`);
+                } else { showToast("투표할 수 없는 대상이거나 투표 시간이 아닙니다."); }
+                document.getElementById('chat-input').value = ''; return;
+            }
+
+            if (text.startsWith('!능력 ')) {
+                const tName = text.replace('!능력 ', '').trim();
+                const targetP = playersList.find(p => p.name === tName && p.isAlive);
+                if (targetP && gameState.phase === 'night_action' && !amIDead && myRole !== '시민') {
+                    await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: targetP.uid });
+                    showToast(`[채팅 시스템] ${tName}님에게 능력을 사용했습니다.`);
+                } else { showToast("능력을 사용할 수 없거나 밤이 아닙니다."); }
+                document.getElementById('chat-input').value = ''; return;
+            }
+
+            if (amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked) return;
 
             const now = Date.now(); chatTimestamps = chatTimestamps.filter(t => now - t < 3000); chatTimestamps.push(now);
             if (chatTimestamps.length >= 4) {
