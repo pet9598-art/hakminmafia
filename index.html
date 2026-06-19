@@ -356,6 +356,7 @@
         let currentActionFilter = null;
         let isActionPhase = false;
         let selectedTarget = null;
+        let previousPhase = 'lobby'; // 상태 추적용 변수 추가
 
         // Toast Helper
         function showToast(msg) {
@@ -619,6 +620,17 @@
         function updatePhaseUI() {
             isActionPhase = ['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase);
             
+            // 게임 시작 시 직업 자동 표시 애니메이션 추가
+            if (previousPhase === 'lobby' && gameState.phase === 'day_discuss') {
+                showToast(`게임 시작! 당신의 직업은 [ ${myRole} ] 입니다.`);
+                const roleCover = document.getElementById('role-cover');
+                if (roleCover) {
+                    roleCover.style.opacity = '0';
+                    setTimeout(() => { roleCover.style.opacity = '1'; }, 5000);
+                }
+            }
+            previousPhase = gameState.phase;
+
             const phaseInfo = {
                 'lobby': { t: '대기실', i: 'fa-coffee', bg: 'bg-lobby', vIcon: 'fa-shield-alt text-white opacity-[0.03]' },
                 'day_discuss': { t: '낮 (토론 시간)', i: 'fa-sun text-yellow-300', bg: 'bg-day', vIcon: 'fa-sun text-yellow-200 opacity-[0.08] animate-pulse' },
@@ -766,6 +778,13 @@
             pool.sort(() => Math.random() - 0.5);
 
             for (let i = 0; i < playersList.length; i++) await updateDoc(doc(PLAYERS_COL, playersList[i].uid), { role: pool[i], isAlive: true, isReady: false });
+            
+            // 즉시 종료 조건 검사 (마피아가 너무 많게 설정된 경우 시작하자마자 종료)
+            if (m >= (pool.length - m)) {
+                await changePhase('game_over', 0, "시작과 동시에 마피아가 도시를 장악했습니다. (마피아 수 ≥ 시민 수)\n💀 마피아팀의 승리! 💀");
+                return;
+            }
+
             await sysChat("===== 핏빛 밤이 시작됩니다 =====");
             await changePhase('day_discuss', 180, "아침이 밝았습니다.\n토론을 통해 마피아를 색출하세요.");
         });
@@ -879,12 +898,11 @@
             const snap = await getDocs(PLAYERS_COL); let mCount = 0, cCount = 0, total = 0;
             snap.forEach(doc => { const p = doc.data(); total++; if (p.isAlive) { p.role === '마피아' ? mCount++ : cCount++; } });
 
-            if (total <= 3 && gameState.phase !== 'lobby') return false; 
-
+            // 기존의 소규모 테스트용 예외 처리(total <= 3) 제거 및 정식 조건 적용
             if (mCount === 0) {
                 await changePhase('game_over', 0, "모든 마피아가 소탕되었습니다.\n🎉 시민팀의 승리! 🎉"); return true;
-            } else if (mCount >= cCount) {
-                await changePhase('game_over', 0, "마피아가 도시를 장악했습니다.\n💀 마피아팀의 승리! 💀"); return true;
+            } else if (mCount >= cCount && mCount > 0) {
+                await changePhase('game_over', 0, "마피아가 도시를 장악했습니다. (마피아 수 ≥ 시민 수)\n💀 마피아팀의 승리! 💀"); return true;
             } return false;
         }
 
