@@ -13,9 +13,9 @@
         
         /* Premium Glassmorphism */
         .glass-panel { 
-            background: rgba(15, 23, 42, 0.65); 
-            backdrop-filter: blur(16px); 
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(15, 23, 42, 0.7); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.08); 
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
@@ -31,19 +31,24 @@
         .btn-press:active:not(:disabled) { transform: scale(0.96); }
         
         .player-item { transition: all 0.3s ease; }
-        .player-item.dead { opacity: 0.4; filter: grayscale(100%); position: relative; }
+        .player-item.dead { opacity: 0.5; filter: grayscale(100%); position: relative; }
         .player-item.dead::after { content: ''; position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: #ef4444; transform: translateY(-50%); box-shadow: 0 0 8px #ef4444; }
         
-        .selectable { cursor: pointer; border: 2px solid transparent; }
-        .selectable:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(30, 41, 59, 0.8); }
-        .selectable.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+        .selectable { cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; }
+        .selectable:hover { border-color: rgba(99, 102, 241, 0.6); background: rgba(30, 41, 59, 0.9); transform: translateY(-2px); }
+        .selectable.selected { 
+            border-color: #6366f1 !important; 
+            background: rgba(99, 102, 241, 0.25) !important; 
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); 
+            transform: translateY(-2px);
+        }
         
         /* Dynamic Game Backgrounds */
         #game-board-bg { transition: background 1.5s ease; background-size: 200% 200%; }
         .bg-lobby { background: radial-gradient(circle at center, #1e293b 0%, #0f172a 100%); }
-        .bg-day { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); animation: gradientMove 10s ease infinite; }
-        .bg-night { background: linear-gradient(135deg, #0f172a 0%, #171717 100%, #312e81 100%); }
-        .bg-sunset { background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%); animation: gradientMove 10s ease infinite; }
+        .bg-day { background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%); animation: gradientMove 15s ease infinite; }
+        .bg-night { background: linear-gradient(135deg, #09090b 0%, #171717 100%, #1e1b4b 100%); }
+        .bg-sunset { background: linear-gradient(135deg, #ea580c 0%, #7c2d12 100%); animation: gradientMove 15s ease infinite; }
         
         @keyframes gradientMove { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
@@ -52,58 +57,64 @@
         .toast-show { opacity: 1 !important; transform: translate(-50%, 0) !important; }
         
         /* Chat Bubbles */
-        .chat-bubble { border-radius: 18px; padding: 10px 14px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-        .chat-me { background: linear-gradient(135deg, #2563eb, #1d4ed8); border-bottom-right-radius: 4px; }
+        .chat-bubble { border-radius: 18px; padding: 10px 14px; font-size: 0.95rem; line-height: 1.4; box-shadow: 0 2px 5px rgba(0,0,0,0.2); word-break: break-word; }
+        .chat-me { background: linear-gradient(135deg, #4f46e5, #3730a3); border-bottom-right-radius: 4px; }
         .chat-other { background: rgba(255,255,255,0.1); border-bottom-left-radius: 4px; border: 1px solid rgba(255,255,255,0.05); }
         
         .no-select { user-select: none; -webkit-user-select: none; }
         
+        /* Animations */
+        @keyframes popIn { 0% { opacity: 0; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        
         /* Tab Transitions */
-        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content { display: none; animation: popIn 0.3s ease; }
         .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Action Panel Theme */
+        .action-theme { background: rgba(41, 37, 36, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
 
     <!-- Toast Notification -->
-    <div id="toast-container" class="absolute top-6 left-1/2 transform -translate-x-1/2 -translate-y-4 z-[100] opacity-0 bg-red-500/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-2xl font-bold border border-red-400/50 flex items-center gap-2">
+    <div id="toast-container" class="fixed top-6 left-1/2 transform -translate-x-1/2 -translate-y-8 z-[100] opacity-0 bg-red-500/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-2xl font-bold border border-red-400/50 flex items-center gap-2">
         <i class="fas fa-exclamation-circle"></i> <span id="toast-msg">알림 메시지</span>
     </div>
 
     <!-- Auth / Login Screen -->
-    <div id="auth-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm">
+    <div id="auth-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/90 backdrop-blur-sm">
         <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden border border-gray-600/30">
-            <div class="absolute -top-20 -right-20 w-40 h-40 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
-            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
+            <div class="absolute -top-20 -right-20 w-40 h-40 bg-indigo-600 rounded-full mix-blend-multiply filter blur-3xl opacity-30 pointer-events-none"></div>
+            <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-rose-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
 
             <div class="text-center relative z-10">
                 <div class="inline-block p-4 rounded-2xl bg-gray-800/50 mb-4 border border-gray-700/50 shadow-inner">
-                    <i class="fas fa-user-secret text-4xl text-blue-400 drop-shadow-[0_0_10px_rgba(59,130,246,0.5)]"></i>
+                    <i class="fas fa-user-secret text-4xl text-indigo-400 drop-shadow-[0_0_10px_rgba(99,102,241,0.5)]"></i>
                 </div>
-                <h1 class="text-4xl font-extrabold mb-1 tracking-tight text-white">MAFIA<span class="text-blue-500">.io</span></h1>
+                <h1 class="text-4xl font-extrabold mb-1 tracking-tight text-white">MAFIA<span class="text-indigo-500">.io</span></h1>
                 <p class="text-gray-400 mb-8 text-sm font-medium">18인제 실시간 심리전 마피아 게임</p>
                 
-                <div id="loading-auth" class="text-blue-400 font-bold animate-pulse flex items-center justify-center gap-2 bg-blue-900/20 py-3 rounded-xl border border-blue-500/20">
-                    <i class="fas fa-circle-notch fa-spin"></i> 서버 연결 중...
+                <div id="loading-auth" class="text-indigo-400 font-bold animate-pulse flex items-center justify-center gap-2 bg-indigo-900/20 py-3 rounded-xl border border-indigo-500/20">
+                    <i class="fas fa-circle-notch fa-spin"></i> 서버 접속 중...
                 </div>
 
                 <div id="auth-forms" style="display: none;">
-                    <div class="flex p-1 bg-gray-800/80 rounded-xl mb-6 border border-gray-700/50">
-                        <button id="tab-join" class="flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md transition-all">방 참가하기</button>
-                        <button id="tab-create" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">새 방 만들기</button>
+                    <div class="flex p-1 bg-gray-800/80 rounded-xl mb-6 border border-gray-700/50 shadow-inner">
+                        <button id="tab-join" class="flex-1 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white shadow-md transition-all">방 참가</button>
+                        <button id="tab-create" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">방 생성</button>
                     </div>
 
                     <div id="content-join" class="tab-content active space-y-4">
                         <div class="relative">
                             <i class="fas fa-hashtag absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                            <input type="number" id="join-room-input" placeholder="입장할 방 번호 (숫자 5자리)" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-white font-mono text-lg" maxlength="5">
+                            <input type="number" id="join-room-input" placeholder="입장할 방 번호 (숫자 5자리)" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all text-white font-mono text-lg" maxlength="5">
                         </div>
                         <div class="relative">
                             <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" id="join-name-input" placeholder="사용할 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-white font-medium">
+                            <input type="text" id="join-name-input" placeholder="사용할 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all text-white font-medium">
                         </div>
-                        <button id="btn-submit-join" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(79,70,229,0.4)] btn-press flex items-center justify-center gap-2">
+                        <button id="btn-submit-join" class="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(79,70,229,0.4)] btn-press flex items-center justify-center gap-2">
                             <i class="fas fa-sign-in-alt"></i> 게임 참가
                         </button>
                     </div>
@@ -111,9 +122,9 @@
                     <div id="content-create" class="tab-content space-y-4">
                         <div class="relative">
                             <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
-                            <input type="text" id="create-name-input" placeholder="방장 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-white font-medium">
+                            <input type="text" id="create-name-input" placeholder="방장 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-500/30 transition-all text-white font-medium">
                         </div>
-                        <button id="btn-submit-create" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(168,85,247,0.4)] btn-press flex items-center justify-center gap-2">
+                        <button id="btn-submit-create" class="w-full py-3.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(225,29,72,0.4)] btn-press flex items-center justify-center gap-2">
                             <i class="fas fa-plus-circle"></i> 방 만들기
                         </button>
                         <p class="text-xs text-gray-400 mt-2">입장하기 쉬운 5자리 숫자 코드가 발급됩니다.</p>
@@ -124,25 +135,25 @@
     </div>
 
     <!-- Main Game Interface -->
-    <div id="main-screen" class="flex-1 flex flex-col md:flex-row h-full" style="display: none;">
+    <div id="main-screen" class="flex-1 flex flex-col md:flex-row h-full overflow-hidden" style="display: none;">
         
         <!-- Left Panel: Game Info & Players -->
-        <div class="w-full md:w-[320px] h-1/3 md:h-full border-b md:border-r border-gray-700/50 flex flex-col glass-panel z-20 shrink-0">
+        <div class="w-full md:w-[320px] h-1/3 md:h-full border-b md:border-r border-gray-700/50 flex flex-col glass-panel z-20 shrink-0 shadow-lg">
             <div class="p-5 border-b border-gray-700/50 bg-gray-800/30">
                 <div class="flex justify-between items-center mb-4">
                     <div class="bg-gray-900/80 px-3 py-1.5 rounded-lg border border-gray-700 flex items-center gap-2 shadow-inner">
-                        <i class="fas fa-hashtag text-blue-400"></i>
+                        <i class="fas fa-hashtag text-indigo-400"></i>
                         <span id="room-display" class="font-mono font-bold tracking-widest text-lg text-white">ROOM</span>
                     </div>
-                    <div class="bg-blue-900/30 text-blue-300 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 border border-blue-500/20">
+                    <div class="bg-indigo-900/30 text-indigo-300 px-3 py-1.5 rounded-lg text-sm font-bold flex items-center gap-1 border border-indigo-500/20">
                         <i class="fas fa-users text-xs"></i> <span id="player-count">0/18</span>
                     </div>
                 </div>
                 
                 <!-- Touch to Reveal Role -->
                 <div id="role-container" class="relative border border-gray-600/50 rounded-xl bg-gray-800/80 overflow-hidden no-select shadow-lg group" style="display: none;">
-                    <div id="role-cover" class="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer text-gray-300 font-bold hover:text-white transition-all z-10">
-                        <i class="fas fa-fingerprint text-2xl mr-2 group-hover:scale-110 transition-transform"></i> <span class="tracking-wide">터치하여 직업 확인 (3초)</span>
+                    <div id="role-cover" class="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer text-gray-300 font-bold hover:text-white transition-all duration-300 z-10">
+                        <i class="fas fa-fingerprint text-2xl mr-2 group-hover:scale-110 transition-transform"></i> <span class="tracking-wide">터치하여 직업 확인</span>
                     </div>
                     <div class="p-4 text-center">
                         <span class="text-xs text-gray-400 block mb-1 uppercase tracking-wider font-bold">당신의 정체</span>
@@ -151,127 +162,128 @@
                 </div>
             </div>
             
-            <div class="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">참가자 목록</div>
-            <div id="player-list" class="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
+            <div class="px-4 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-900/30 border-b border-gray-700/30">참가자 목록</div>
+            <div id="player-list" class="flex-1 overflow-y-auto px-3 py-4 space-y-2">
                 <!-- Players injected here -->
             </div>
         </div>
 
         <!-- Center Panel: Game Board / Action Area -->
-        <div id="game-board-bg" class="flex-1 h-1/3 md:h-full flex flex-col relative bg-lobby border-b md:border-b-0 md:border-r border-gray-700/50 overflow-hidden">
+        <div id="game-board-bg" class="flex-1 h-1/3 md:h-full flex flex-col relative bg-lobby border-b md:border-b-0 md:border-r border-gray-700/50 overflow-hidden shadow-inner">
             
             <!-- Dynamic Background Icon -->
             <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-                <i id="bg-visual-icon" class="fas fa-shield-alt text-[18rem] text-white opacity-[0.03] transform -rotate-12 transition-all duration-1000"></i>
+                <i id="bg-visual-icon" class="fas fa-shield-alt text-[15rem] md:text-[20rem] text-white opacity-[0.03] transform -rotate-12 transition-all duration-1000"></i>
             </div>
 
             <!-- Phase Header -->
-            <div class="h-24 bg-gray-900/60 backdrop-blur-md flex items-center justify-between px-8 border-b border-white/5 shadow-lg z-10 relative shrink-0">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <div id="phase-icon" class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400">
-                            <i class="fas fa-coffee"></i>
-                        </div>
-                        <h2 id="phase-title" class="text-3xl font-black text-white tracking-tight">대기실</h2>
+            <div class="h-20 md:h-24 bg-gray-900/70 backdrop-blur-md flex items-center justify-between px-4 md:px-8 border-b border-white/5 shadow-lg z-10 relative shrink-0">
+                <div class="flex items-center gap-3 md:gap-4 max-w-[60%]">
+                    <div id="phase-icon" class="w-10 h-10 md:w-12 md:h-12 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fas fa-coffee text-xl md:text-2xl"></i>
                     </div>
-                    <div id="phase-desc" class="text-gray-300 text-sm mt-1 ml-13 font-medium">코드를 공유하여 친구들을 초대하세요.</div>
+                    <div class="overflow-hidden">
+                        <h2 id="phase-title" class="text-2xl md:text-3xl font-black text-white tracking-tight truncate">대기실</h2>
+                        <div id="phase-desc" class="text-gray-300 text-xs md:text-sm font-medium truncate opacity-80">코드를 공유하여 친구들을 초대하세요.</div>
+                    </div>
                 </div>
-                <div class="text-right bg-black/40 px-6 py-2 rounded-2xl border border-white/10 shadow-inner flex flex-col items-end">
-                    <div class="flex items-center gap-3 mb-1">
-                        <button id="host-quick-skip-btn" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 rounded text-[10px] font-bold text-white shadow-md btn-press" style="display: none;"><i class="fas fa-forward"></i> 방장 스킵</button>
-                        <div class="text-xs text-gray-400 font-bold tracking-wider">남은 시간</div>
+                <div class="text-right bg-black/50 px-4 md:px-6 py-2 rounded-2xl border border-white/10 shadow-inner flex flex-col items-end shrink-0">
+                    <div class="flex items-center gap-2 md:gap-3 mb-1">
+                        <button id="host-quick-skip-btn" class="px-2 py-1 bg-rose-600 hover:bg-rose-500 rounded text-[10px] font-bold text-white shadow-md btn-press whitespace-nowrap" style="display: none;"><i class="fas fa-forward"></i> 방장 스킵</button>
+                        <div class="text-[10px] md:text-xs text-gray-400 font-bold tracking-wider">남은 시간</div>
                     </div>
-                    <div id="timer-display" class="text-3xl font-mono text-yellow-400 font-black tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">--:--</div>
+                    <div id="timer-display" class="text-2xl md:text-3xl font-mono text-yellow-400 font-black tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">--:--</div>
                 </div>
             </div>
 
             <!-- Action Area -->
-            <div class="flex-1 flex items-center justify-center p-6 overflow-y-auto relative z-10">
+            <div class="flex-1 flex items-center justify-center p-4 md:p-6 overflow-y-auto relative z-10">
                 
                 <!-- Lobby Panel -->
-                <div id="lobby-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden" style="display: none;">
-                    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
+                <div id="lobby-panel" class="w-full max-w-lg glass-panel p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden animate-pop" style="display: none;">
+                    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"></div>
                     <h3 class="text-2xl font-black mb-6 text-center text-white">게임 대기실</h3>
                     
                     <div id="host-settings-area" class="mb-6" style="display: none;">
-                        <div class="bg-gray-900/50 rounded-2xl p-5 border border-gray-700/50">
-                            <div class="text-sm text-blue-400 mb-4 font-bold flex items-center gap-2">
-                                <i class="fas fa-sliders-h"></i> 직업 설정 (방장 전용)
+                        <div class="bg-gray-900/60 rounded-2xl p-5 border border-gray-700/50">
+                            <div class="text-sm text-indigo-400 mb-4 font-bold flex items-center gap-2">
+                                <i class="fas fa-sliders-h"></i> 직업 설정 <span class="text-gray-500 text-xs font-normal ml-1">(방장 전용)</span>
                             </div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700/50 hover:border-gray-600 transition">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-user-secret text-red-400 w-5"></i> 마피아</label>
-                                    <input type="number" id="setting-mafia" value="2" min="1" max="5" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-red-400">
+                                    <input type="number" id="setting-mafia" value="2" min="1" max="5" class="w-12 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-red-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700/50 hover:border-gray-600 transition">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-user-nurse text-green-400 w-5"></i> 의사</label>
-                                    <input type="number" id="setting-doctor" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-green-400">
+                                    <input type="number" id="setting-doctor" value="1" min="0" max="3" class="w-12 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-green-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700/50 hover:border-gray-600 transition">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-shield-alt text-blue-400 w-5"></i> 경찰</label>
-                                    <input type="number" id="setting-police" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-blue-400">
+                                    <input type="number" id="setting-police" value="1" min="0" max="3" class="w-12 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-blue-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700/50 hover:border-gray-600 transition">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-taxi text-yellow-400 w-5"></i> 택시</label>
-                                    <input type="number" id="setting-taxi" value="1" min="0" max="2" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-yellow-400">
+                                    <input type="number" id="setting-taxi" value="1" min="0" max="2" class="w-12 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-yellow-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl col-span-2">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl col-span-2 border border-gray-700/50 hover:border-gray-600 transition">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-medal text-purple-400 w-5"></i> 군인</label>
-                                    <input type="number" id="setting-soldier" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-purple-400">
+                                    <input type="number" id="setting-soldier" value="1" min="0" max="3" class="w-12 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-purple-400">
                                 </div>
                             </div>
                             <div id="role-calc-info" class="text-center text-sm font-bold mt-4 px-2 py-2 rounded-lg bg-gray-800/80 border border-gray-700"></div>
                         </div>
                     </div>
 
-                    <div id="player-ready-area" class="text-center mb-6 p-6 bg-gray-900/50 rounded-2xl border border-gray-700/50" style="display: none;">
-                        <i class="fas fa-gamepad text-4xl text-gray-500 mb-3"></i>
-                        <p class="text-gray-300 font-medium">방장의 게임 시작을 기다리고 있습니다.<br><span class="text-blue-400 font-bold mt-1 inline-block">하단의 준비 버튼을 눌러주세요.</span></p>
+                    <div id="player-ready-area" class="text-center mb-6 p-6 bg-gray-900/60 rounded-2xl border border-gray-700/50" style="display: none;">
+                        <i class="fas fa-gamepad text-4xl text-gray-500 mb-3 animate-pulse"></i>
+                        <p class="text-gray-300 font-medium">방장의 게임 시작을 기다리고 있습니다.<br><span class="text-indigo-400 font-bold mt-1 inline-block">하단의 준비 버튼을 눌러주세요.</span></p>
                     </div>
 
-                    <button id="ready-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press" style="display: none;">준비 완료</button>
-                    <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press disabled:opacity-50 disabled:cursor-not-allowed" style="display: none;">게임 시작</button>
+                    <button id="ready-btn" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press" style="display: none;">준비 완료</button>
+                    <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press disabled:opacity-50 disabled:cursor-not-allowed" style="display: none;">게임 시작</button>
                 </div>
 
-                <!-- Voting / Action Panel -->
-                <div id="action-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl flex-col h-full max-h-[90%] shadow-2xl" style="display: none;">
-                    <div class="text-center mb-6">
-                        <div id="action-icon" class="inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2">
-                            <i class="fas fa-crosshairs text-3xl"></i>
+                <!-- Voting / Action Panel (Fix: Added flex flex-col to ensure proper layout) -->
+                <div id="action-panel" class="w-full max-w-lg action-theme p-6 md:p-8 rounded-[2rem] flex flex-col shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] relative animate-pop h-full max-h-[85vh]" style="display: none;">
+                    <div class="text-center mb-5 md:mb-6 shrink-0">
+                        <div id="action-icon" class="inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-3 shadow-inner">
+                            <i class="fas fa-gavel text-3xl"></i>
                         </div>
-                        <h3 id="action-title" class="text-2xl font-black text-white">행동 선택</h3>
-                        <p id="action-desc" class="text-gray-400 font-medium mt-1">대상을 신중하게 선택하세요.</p>
+                        <h3 id="action-title" class="text-2xl font-black text-white tracking-tight">투표 시간</h3>
+                        <p id="action-desc" class="text-gray-400 font-medium mt-1 text-sm md:text-base">처형할 대상을 고르세요.</p>
                     </div>
                     
-                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-1 md:grid-cols-2 gap-3 content-start">
-                        <!-- Selectables -->
+                    <!-- Fix: Added overflow-y-auto and ensuring flex child properties -->
+                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
+                        <!-- Selectables injected here -->
                     </div>
 
-                    <div class="flex gap-3 shrink-0">
-                        <button id="action-skip-btn" class="flex-1 py-4 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold transition text-white btn-press">넘기기</button>
-                        <button id="action-submit-btn" class="flex-1 py-4 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold transition text-white btn-press disabled:opacity-50 shadow-lg shadow-blue-500/30" disabled>결정 완료</button>
+                    <div class="flex gap-3 shrink-0 mt-auto">
+                        <button id="action-skip-btn" class="flex-1 py-4 bg-slate-700 hover:bg-slate-600 rounded-2xl font-bold transition text-gray-200 btn-press border border-slate-600 shadow-md">넘기기</button>
+                        <button id="action-submit-btn" class="flex-[1.5] py-4 bg-indigo-600 hover:bg-indigo-500 rounded-2xl font-bold transition text-white btn-press disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(79,70,229,0.4)]" disabled>결정 완료</button>
                     </div>
                 </div>
 
                 <!-- Result Message Panel -->
-                <div id="result-panel" class="w-full max-w-lg glass-panel p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden" style="display: none;">
+                <div id="result-panel" class="w-full max-w-lg glass-panel p-8 md:p-10 rounded-[2rem] text-center shadow-2xl relative overflow-hidden animate-pop" style="display: none;">
                     <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none"></div>
                     <div class="relative z-10">
-                        <i id="result-icon" class="fas fa-bullhorn text-6xl mb-6 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] filter"></i>
-                        <h2 id="result-title" class="text-3xl font-black text-white mb-4 tracking-tight">결과 발표</h2>
-                        <p id="result-desc" class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10">결과를 기다리는 중입니다.</p>
+                        <i id="result-icon" class="fas fa-bullhorn text-6xl mb-6 text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] filter"></i>
+                        <h2 id="result-title" class="text-2xl md:text-3xl font-black text-white mb-4 tracking-tight">상황 보고</h2>
+                        <div id="result-desc" class="text-gray-200 text-sm md:text-base leading-relaxed font-medium bg-black/50 p-5 rounded-2xl border border-white/10 shadow-inner">결과를 기다리는 중입니다.</div>
                         
                         <!-- Night Status Board -->
-                        <div id="dynamic-status-box" class="mt-4 flex justify-center"></div>
+                        <div id="dynamic-status-box" class="mt-6 flex justify-center"></div>
 
                         <div id="private-result-box" class="mt-6 p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-500/30 text-left shadow-lg" style="display: none;">
-                            <div class="text-xs text-yellow-400 font-black mb-2 tracking-wider flex items-center gap-2"><i class="fas fa-lock text-sm"></i> SECRET REPORT</div>
-                            <div id="private-result-text" class="text-base text-white font-medium"></div>
+                            <div class="text-xs text-yellow-400 font-black mb-2 tracking-widest flex items-center gap-2"><i class="fas fa-lock text-sm"></i> SECRET REPORT</div>
+                            <div id="private-result-text" class="text-sm md:text-base text-white font-medium"></div>
                         </div>
 
                         <!-- Host Controls -->
                         <div class="mt-8 flex justify-center gap-3">
-                            <button id="host-reset-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-bold shadow-lg shadow-red-500/30 btn-press" style="display: none;"><i class="fas fa-undo mr-2"></i>대기실 복귀</button>
+                            <button id="host-reset-btn" class="px-6 py-3 bg-rose-600 hover:bg-rose-500 rounded-xl text-white font-bold shadow-lg shadow-rose-500/30 btn-press transition" style="display: none;"><i class="fas fa-undo mr-2"></i>대기실로 복귀</button>
                         </div>
                     </div>
                 </div>
@@ -280,16 +292,16 @@
         </div>
 
         <!-- Right Panel: Chat -->
-        <div class="w-full md:w-[350px] h-1/3 md:h-full flex flex-col glass-panel relative z-20 shrink-0 border-l border-gray-700/50">
-            <div class="p-4 border-b border-gray-700/50 bg-gray-800/30 flex justify-between items-center shadow-sm">
-                <h2 class="font-black text-white tracking-wide"><i class="fas fa-comments text-blue-400 mr-2"></i>실시간 채팅</h2>
+        <div class="w-full md:w-[350px] h-1/3 md:h-full flex flex-col glass-panel relative z-20 shrink-0 border-t md:border-t-0 border-l border-gray-700/50">
+            <div class="p-4 border-b border-gray-700/50 bg-gray-800/30 flex justify-between items-center shadow-sm shrink-0">
+                <h2 class="font-black text-white tracking-wide"><i class="fas fa-comments text-indigo-400 mr-2"></i>실시간 채팅</h2>
             </div>
             
-            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900/40">
-                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">채팅 내역이 보호되고 있습니다.</div>
+            <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900/40 scroll-smooth">
+                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg border border-white/5">채팅 내역이 보호되고 있습니다.</div>
             </div>
 
-            <div id="chat-overlay" class="absolute inset-x-0 bottom-[76px] top-[61px] bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-md border-t border-gray-700/50" style="display: none;">
+            <div id="chat-overlay" class="absolute inset-x-0 bottom-[76px] top-[61px] bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-sm border-t border-gray-700/50 transition-opacity" style="display: none;">
                 <div class="text-center transform transition-transform hover:scale-105">
                     <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-gray-700">
                         <i id="chat-lock-icon" class="fas fa-lock text-2xl text-gray-400"></i>
@@ -298,10 +310,10 @@
                 </div>
             </div>
 
-            <div class="p-4 border-t border-gray-700/50 bg-gray-800/80 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.2)]">
+            <div class="p-4 border-t border-gray-700/50 bg-gray-800/80 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.2)] shrink-0">
                 <form id="chat-form" class="flex gap-2">
-                    <input type="text" id="chat-input" class="flex-1 bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-medium placeholder-gray-500 shadow-inner" placeholder="메시지 입력..." autocomplete="off">
-                    <button type="submit" class="bg-blue-600 hover:bg-blue-500 w-12 rounded-xl text-white flex items-center justify-center btn-press shadow-md shadow-blue-500/20"><i class="fas fa-paper-plane"></i></button>
+                    <input type="text" id="chat-input" class="flex-1 bg-gray-900 border border-gray-600 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all font-medium placeholder-gray-500 shadow-inner" placeholder="메시지 입력..." autocomplete="off">
+                    <button type="submit" class="bg-indigo-600 hover:bg-indigo-500 w-14 rounded-xl text-white flex items-center justify-center btn-press shadow-md shadow-indigo-500/20"><i class="fas fa-paper-plane"></i></button>
                 </form>
             </div>
         </div>
@@ -309,7 +321,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, collection, addDoc, updateDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'mafia-web-premium';
@@ -330,6 +342,7 @@
         let ROOM_DOC, PLAYERS_COL, CHAT_COL, ACTIONS_COL;
 
         // State
+        let user = null;
         let myUid = null;
         let myName = "";
         let roomCode = "";
@@ -341,6 +354,7 @@
         let gameState = { phase: 'lobby', phaseEndsAt: 0, logs: "", hostUid: "" };
         let playersList = [];
         let currentActions = []; 
+        let selectedTarget = null;
         
         let hostLoopInterval = null;
         let timerInterval = null;
@@ -349,6 +363,9 @@
 
         let chatTimestamps = [];
         let isSpamLocked = false;
+        
+        // Listeners Unsubscribe Functions
+        let unsubRoom, unsubPlayers, unsubChat, unsubActions;
 
         // UI Helpers
         const elLobbyPanel = document.getElementById('lobby-panel');
@@ -366,46 +383,54 @@
             return Math.floor(10000 + Math.random() * 90000).toString();
         }
 
-        const tabJoin = document.getElementById('tab-join');
-        const tabCreate = document.getElementById('tab-create');
-        const contentJoin = document.getElementById('content-join');
-        const contentCreate = document.getElementById('content-create');
+        // Auth Initialization (Rule 3)
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                document.getElementById('loading-auth').innerHTML = `<span class="text-red-500">인증 실패: ${err.message}</span>`;
+            }
+        };
+        initAuth();
 
-        function switchTab(isJoin) {
+        onAuthStateChanged(auth, (currentUser) => {
+            if (currentUser) {
+                user = currentUser;
+                myUid = user.uid; // Always use proper user.uid
+                document.getElementById('loading-auth').style.display = 'none';
+                document.getElementById('auth-forms').style.display = 'block';
+            }
+        });
+
+        // Tabs
+        const switchTab = (isJoin) => {
+            const tabJoin = document.getElementById('tab-join');
+            const tabCreate = document.getElementById('tab-create');
+            const contentJoin = document.getElementById('content-join');
+            const contentCreate = document.getElementById('content-create');
+
             if (isJoin) {
-                tabJoin.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md transition-all";
+                tabJoin.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-indigo-600 text-white shadow-md transition-all";
                 tabCreate.className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
                 contentJoin.classList.add('active'); contentCreate.classList.remove('active');
             } else {
-                tabCreate.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow-md transition-all";
+                tabCreate.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-rose-600 text-white shadow-md transition-all";
                 tabJoin.className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
                 contentCreate.classList.add('active'); contentJoin.classList.remove('active');
             }
-        }
-        tabJoin.onclick = () => switchTab(true);
-        tabCreate.onclick = () => switchTab(false);
-
-        async function init() {
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    try { await signInWithCustomToken(auth, __initial_auth_token); } 
-                    catch (e) { await signInAnonymously(auth); }
-                } else { await signInAnonymously(auth); }
-                
-                let tabId = sessionStorage.getItem('mafia_tab_id');
-                if (!tabId) { tabId = Math.random().toString(36).substring(2, 9); sessionStorage.setItem('mafia_tab_id', tabId); }
-                myUid = auth.currentUser.uid + "_" + tabId;
-                
-                document.getElementById('loading-auth').style.display = 'none';
-                document.getElementById('auth-forms').style.display = 'block';
-            } catch (error) {
-                document.getElementById('loading-auth').innerHTML = `<span class="text-red-500">인증 실패</span>`;
-            }
-        }
+        };
+        document.getElementById('tab-join').onclick = () => switchTab(true);
+        document.getElementById('tab-create').onclick = () => switchTab(false);
 
         function setupFirebasePaths(code) {
             roomCode = code;
             document.getElementById('room-display').textContent = roomCode;
+            
+            // Rule 1: Valid Path Structures
             ROOM_DOC = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
             PLAYERS_COL = collection(db, 'artifacts', appId, 'public', 'data', `room_${roomCode}_players`);
             CHAT_COL = collection(db, 'artifacts', appId, 'public', 'data', `room_${roomCode}_chat`);
@@ -421,6 +446,7 @@
         }
 
         document.getElementById('btn-submit-join').addEventListener('click', async () => {
+            if (!user) return showToast("인증이 완료되지 않았습니다.");
             const rCode = document.getElementById('join-room-input').value.trim();
             const nName = document.getElementById('join-name-input').value.trim();
             if (!rCode || !nName) return showToast("방 번호와 닉네임을 모두 입력해주세요.");
@@ -435,6 +461,7 @@
         });
 
         document.getElementById('btn-submit-create').addEventListener('click', async () => {
+            if (!user) return showToast("인증이 완료되지 않았습니다.");
             const nName = document.getElementById('create-name-input').value.trim();
             if (!nName) return showToast("사용할 방장 닉네임을 입력해주세요.");
 
@@ -450,7 +477,12 @@
         });
 
         function setupListeners() {
-            onSnapshot(ROOM_DOC, (docSnap) => {
+            if (unsubRoom) unsubRoom();
+            if (unsubPlayers) unsubPlayers();
+            if (unsubChat) unsubChat();
+            if (unsubActions) unsubActions();
+
+            unsubRoom = onSnapshot(ROOM_DOC, (docSnap) => {
                 if (!docSnap.exists()) { alert("방이 삭제되었습니다."); window.location.reload(); return; }
                 gameState = docSnap.data();
                 isHost = (gameState.hostUid === myUid);
@@ -467,16 +499,16 @@
                 ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).disabled = !isHost; });
                 validateHostSettings(); 
                 updatePhaseUI();
-            });
+            }, (err) => console.error(err));
 
-            onSnapshot(PLAYERS_COL, (snapshot) => {
+            unsubPlayers = onSnapshot(PLAYERS_COL, (snapshot) => {
                 playersList = [];
                 snapshot.forEach(doc => playersList.push(doc.data()));
                 playersList.sort((a, b) => a.name.localeCompare(b.name));
                 
                 if (hasJoined) {
                     const me = playersList.find(p => p.uid === myUid);
-                    if (!me) { alert("방장에 의해 추방되었습니다."); window.location.reload(); return; }
+                    if (!me) { alert("방장에 의해 추방되거나 데이터가 유실되었습니다."); window.location.reload(); return; }
                     myRole = me.role; amIDead = !me.isAlive; isReady = me.isReady;
                     
                     const roleContainer = document.getElementById('role-container');
@@ -485,28 +517,38 @@
                     if (gameState.phase !== 'lobby') {
                         roleContainer.style.display = 'block';
                         roleText.textContent = amIDead ? '사망함' : myRole;
-                        if (amIDead) { roleText.className = "text-2xl font-black text-red-500 drop-shadow-md"; roleText.parentElement.parentElement.classList.replace('bg-gray-800/80', 'bg-red-900/30'); }
-                        else roleText.className = "text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-md";
+                        if (amIDead) { 
+                            roleText.className = "text-2xl font-black text-red-500 drop-shadow-md"; 
+                            roleText.parentElement.parentElement.classList.replace('bg-gray-800/80', 'bg-red-900/40'); 
+                            roleText.parentElement.parentElement.classList.replace('border-gray-600/50', 'border-red-500/50');
+                        } else {
+                            roleText.className = "text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-md";
+                        }
                     } else { roleContainer.style.display = 'none'; }
                 }
 
                 document.getElementById('player-count').textContent = `${playersList.length}/18`;
                 renderPlayerList();
                 if(isHost) validateHostSettings();
+                
+                // BUG FIX: Ensure Action Panel is re-rendered when players list is updated
+                if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
+                    setupActionPanel();
+                }
                 if (gameState.phase === 'night_action') renderNightStatus();
-            });
+            }, (err) => console.error(err));
 
-            onSnapshot(ACTIONS_COL, (snapshot) => {
+            unsubActions = onSnapshot(ACTIONS_COL, (snapshot) => {
                 currentActions = [];
                 snapshot.forEach(doc => currentActions.push(doc.data()));
                 if (gameState.phase === 'night_action') renderNightStatus();
-            });
+            }, (err) => console.error(err));
 
-            onSnapshot(CHAT_COL, (snapshot) => {
+            unsubChat = onSnapshot(CHAT_COL, (snapshot) => {
                 let msgs = [];
                 snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
                 msgs.sort((a, b) => a.timestamp - b.timestamp);
-                if (msgs.length > 80) msgs = msgs.slice(-80);
+                if (msgs.length > 100) msgs = msgs.slice(-100);
                 
                 const elChatMessages = document.getElementById('chat-messages');
                 elChatMessages.innerHTML = '';
@@ -518,7 +560,7 @@
                     
                     if (isSystem) {
                         div.className = 'text-center my-4';
-                        div.innerHTML = `<span class="inline-block bg-black/40 border border-yellow-500/30 text-yellow-400 text-xs font-bold px-3 py-1.5 rounded-full shadow-sm"><i class="fas fa-bell mr-1"></i>${msg.text}</span>`;
+                        div.innerHTML = `<span class="inline-block bg-indigo-900/40 border border-indigo-500/30 text-indigo-300 text-xs font-bold px-4 py-2 rounded-full shadow-sm"><i class="fas fa-info-circle mr-1.5"></i>${msg.text}</span>`;
                     } else {
                         const prevMsg = idx > 0 ? msgs[idx-1] : null;
                         const isSameUser = prevMsg && prevMsg.uid === msg.uid && !isSystem;
@@ -526,12 +568,12 @@
                         div.className = `flex flex-col ${isMe ? 'items-end' : 'items-start'} ${isSameUser ? 'mt-1' : 'mt-4'}`;
                         let nameHtml = '';
                         if (!isSameUser) nameHtml = `<span class="text-[11px] font-bold text-gray-400 mb-1 pl-1">${msg.name}</span>`;
-                        div.innerHTML = `${nameHtml}<div class="chat-bubble max-w-[85%] break-words ${isMe ? 'chat-me text-white' : 'chat-other text-gray-200'}">${msg.text}</div>`;
+                        div.innerHTML = `${nameHtml}<div class="chat-bubble max-w-[85%] ${isMe ? 'chat-me text-white' : 'chat-other text-gray-200'}">${msg.text}</div>`;
                     }
                     elChatMessages.appendChild(div);
                 });
                 elChatMessages.scrollTop = elChatMessages.scrollHeight;
-            });
+            }, (err) => console.error(err));
         }
 
         function renderPlayerList() {
@@ -541,9 +583,9 @@
             playersList.forEach(p => {
                 const isMe = p.uid === myUid;
                 const div = document.createElement('div');
-                div.className = `player-item p-3 rounded-xl border border-gray-700/50 flex justify-between items-center shadow-sm mb-2 ${!p.isAlive ? 'dead bg-gray-900/50' : 'bg-gray-800/40'}`;
+                div.className = `player-item p-3 rounded-xl border border-gray-700/50 flex justify-between items-center shadow-sm mb-2 ${!p.isAlive ? 'dead bg-gray-900/50' : 'bg-gray-800/40 hover:bg-gray-700/40'}`;
                 
-                let nameHtml = `<span class="font-bold text-sm ${isMe ? 'text-blue-400' : 'text-gray-200'}">${p.name}</span>`;
+                let nameHtml = `<span class="font-bold text-sm ${isMe ? 'text-indigo-400' : 'text-gray-200'}">${p.name}</span>`;
                 
                 let rightHtml = '';
                 if (!p.isAlive && gameState.phase !== 'lobby') {
@@ -552,8 +594,8 @@
                     if (p.uid === gameState.hostUid) {
                         rightHtml = `<i class="fas fa-crown text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]" title="방장"></i>`;
                     } else {
-                        rightHtml = p.isReady ? `<i class="fas fa-check-circle text-green-500" title="준비 완료"></i>` : `<i class="fas fa-spinner fa-spin text-gray-500" title="대기 중"></i>`;
-                        if (isHost && !isMe) rightHtml += ` <button class="ml-2 text-red-400 hover:text-red-300 kick-btn p-1 bg-red-900/30 rounded" data-uid="${p.uid}"><i class="fas fa-sign-out-alt"></i></button>`;
+                        rightHtml = p.isReady ? `<i class="fas fa-check-circle text-emerald-500" title="준비 완료"></i>` : `<i class="fas fa-spinner fa-spin text-gray-500" title="대기 중"></i>`;
+                        if (isHost && !isMe) rightHtml += ` <button class="ml-2 text-red-400 hover:text-red-300 kick-btn p-1.5 bg-red-900/30 rounded-lg transition" data-uid="${p.uid}"><i class="fas fa-sign-out-alt"></i></button>`;
                     }
                 } else { rightHtml = `<i class="fas fa-user-shield text-gray-600"></i>`; }
 
@@ -563,6 +605,7 @@
 
             document.querySelectorAll('.kick-btn').forEach(btn => {
                 btn.onclick = async (e) => {
+                    if(!user) return;
                     const targetUid = e.currentTarget.getAttribute('data-uid');
                     await deleteDoc(doc(PLAYERS_COL, targetUid));
                 };
@@ -574,11 +617,15 @@
         const toggleRoleView = (e) => { 
             e.preventDefault(); 
             roleCover.style.opacity = '0'; 
+            roleCover.style.pointerEvents = 'none';
             if(roleViewTimer) clearTimeout(roleViewTimer);
-            roleViewTimer = setTimeout(() => { roleCover.style.opacity = '1'; }, 3000);
+            roleViewTimer = setTimeout(() => { 
+                roleCover.style.opacity = '1'; 
+                roleCover.style.pointerEvents = 'auto';
+            }, 3000);
         }
         roleCover.addEventListener('mousedown', toggleRoleView);
-        roleCover.addEventListener('touchstart', toggleRoleView);
+        roleCover.addEventListener('touchstart', toggleRoleView, {passive: false});
 
         function updatePhaseUI() {
             const phaseInfo = {
@@ -587,22 +634,21 @@
                 'day_vote': { t: '투표 시간', i: 'fa-box-open text-orange-300', bg: 'bg-sunset', vIcon: 'fa-gavel text-orange-200 opacity-[0.08]' },
                 'day_result': { t: '투표 결과', i: 'fa-scroll text-gray-300', bg: 'bg-sunset', vIcon: 'fa-skull-crossbones text-red-200 opacity-[0.05]' },
                 'day_soldier': { t: '군인의 발악', i: 'fa-bomb text-red-400', bg: 'bg-sunset', vIcon: 'fa-crosshairs text-red-500 opacity-10 animate-ping' },
-                'night_action': { t: '밤 (행동 선택)', i: 'fa-moon text-blue-300', bg: 'bg-night', vIcon: 'fa-moon text-blue-200 opacity-[0.05]' },
-                'night_result': { t: '밤 결과', i: 'fa-eye text-indigo-300', bg: 'bg-night', vIcon: 'fa-eye-slash text-indigo-200 opacity-[0.05]' },
+                'night_action': { t: '밤 (행동 선택)', i: 'fa-moon text-indigo-300', bg: 'bg-night', vIcon: 'fa-moon text-indigo-200 opacity-[0.05]' },
+                'night_result': { t: '밤 결과', i: 'fa-eye text-blue-300', bg: 'bg-night', vIcon: 'fa-eye-slash text-blue-200 opacity-[0.05]' },
                 'game_over': { t: '게임 종료', i: 'fa-flag-checkered text-white', bg: 'bg-lobby', vIcon: 'fa-trophy text-yellow-500 opacity-10' }
             };
             
             const curr = phaseInfo[gameState.phase] || phaseInfo['lobby'];
             
             document.getElementById('phase-title').textContent = curr.t;
-            document.getElementById('phase-icon').innerHTML = `<i class="fas ${curr.i} text-xl"></i>`;
+            document.getElementById('phase-icon').innerHTML = `<i class="fas ${curr.i} text-xl md:text-2xl"></i>`;
             document.getElementById('phase-desc').textContent = gameState.logs.split('\n')[0] || '';
 
             const bgEl = document.getElementById('game-board-bg');
-            bgEl.className = `flex-1 h-1/3 md:h-full flex flex-col relative border-b md:border-b-0 md:border-r border-gray-700/50 overflow-hidden ${curr.bg}`;
-            document.getElementById('bg-visual-icon').className = `fas ${curr.vIcon} text-[18rem] absolute transform -rotate-12 transition-all duration-1000`;
+            bgEl.className = `flex-1 h-1/3 md:h-full flex flex-col relative border-b md:border-b-0 md:border-r border-gray-700/50 overflow-hidden shadow-inner ${curr.bg}`;
+            document.getElementById('bg-visual-icon').className = `fas ${curr.vIcon} text-[15rem] md:text-[20rem] absolute transform -rotate-12 transition-all duration-1000`;
 
-            // Explicit Display Control (No Tailwind Class conflicts)
             elLobbyPanel.style.display = 'none';
             elActionPanel.style.display = 'none';
             elResultPanel.style.display = 'none';
@@ -611,12 +657,20 @@
             document.getElementById('host-reset-btn').style.display = 'none';
 
             let canChat = false; let dMsg = ""; let iconClass = "fa-lock"; let msgColor = "text-gray-300";
-            if (isSpamLocked) { dMsg = "도배 방지 (잠금됨)"; iconClass = "fa-ban text-red-500 animate-pulse"; msgColor = "text-red-400"; }
+            if (isSpamLocked) { dMsg = "도배 방지 (잠금됨)"; iconClass = "fa-ban text-rose-500 animate-pulse"; msgColor = "text-rose-400"; }
             else if (amIDead) { dMsg = "사망자는 채팅을 할 수 없습니다"; }
             else if (['lobby', 'day_discuss', 'game_over'].includes(gameState.phase)) { canChat = true; }
             else { dMsg = "지금은 쉿! 채팅 금지"; }
 
-            document.getElementById('chat-overlay').style.display = canChat ? 'none' : 'flex';
+            const overlay = document.getElementById('chat-overlay');
+            if(canChat) {
+                overlay.style.opacity = '0';
+                setTimeout(() => { if(overlay.style.opacity === '0') overlay.style.display = 'none'; }, 300);
+            } else {
+                overlay.style.display = 'flex';
+                setTimeout(() => overlay.style.opacity = '1', 10);
+            }
+            
             document.getElementById('chat-disabled-msg').textContent = dMsg;
             document.getElementById('chat-disabled-msg').className = `font-bold tracking-wide mt-2 ${msgColor}`;
             document.getElementById('chat-lock-icon').className = `fas ${iconClass} text-2xl`;
@@ -627,25 +681,25 @@
                 elLobbyPanel.style.display = 'block';
                 const btn = document.getElementById('ready-btn');
                 btn.textContent = isReady ? "준비 완료 (취소하려면 클릭)" : "준비하기";
-                btn.className = isReady ? "w-full py-4 bg-gray-600 hover:bg-gray-500 rounded-xl font-bold transition text-white text-xl shadow-inner btn-press" : "w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
+                btn.className = isReady ? "w-full py-4 bg-slate-600 hover:bg-slate-500 rounded-2xl font-bold transition text-white text-xl shadow-inner btn-press border border-slate-500" : "w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
             } else if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
-                elActionPanel.style.display = 'flex';
+                elActionPanel.style.display = 'flex'; // Explicitly set to flex
                 setupActionPanel();
             } else if (gameState.phase === 'day_discuss') {
                 let iconClass = "fa-sun"; let colorClass = "text-yellow-400";
-                if (myRole === '마피아') { iconClass = "fa-user-secret"; colorClass = "text-red-500"; }
-                else if (myRole === '의사') { iconClass = "fa-user-nurse"; colorClass = "text-green-400"; }
+                if (myRole === '마피아') { iconClass = "fa-user-secret"; colorClass = "text-rose-500"; }
+                else if (myRole === '의사') { iconClass = "fa-user-nurse"; colorClass = "text-emerald-400"; }
                 else if (myRole === '경찰') { iconClass = "fa-shield-alt"; colorClass = "text-blue-400"; }
                 else if (myRole === '택시 기사') { iconClass = "fa-taxi"; colorClass = "text-yellow-500"; }
                 else if (myRole === '군인') { iconClass = "fa-medal"; colorClass = "text-purple-400"; }
                 
                 showResultPanel(
-                    '<div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-600/50 inline-block mb-6 shadow-2xl">' +
+                    '<div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-600/50 inline-block mb-6 shadow-2xl transform hover:scale-105 transition">' +
                         '<span class="text-sm text-gray-400 font-bold tracking-widest block mb-2"><i class="fas fa-id-card mr-2"></i>당신의 배정 직업</span>' +
                         '<span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-md tracking-tight">' + myRole + '</span>' +
                     '</div>' +
-                    '<div class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10">' +
-                        '<i class="fas fa-comment-dots text-blue-400 mr-2"></i> ' + gameState.logs.replace(/\n/g, '<br>') +
+                    '<div class="text-gray-200 text-sm md:text-base leading-relaxed font-medium bg-black/40 p-4 md:p-5 rounded-2xl border border-white/10 shadow-inner">' +
+                        '<i class="fas fa-comment-dots text-indigo-400 mr-2 text-lg"></i> ' + gameState.logs.replace(/\n/g, '<br>') +
                     '</div>',
                     iconClass, colorClass
                 );
@@ -656,51 +710,63 @@
             }
         }
 
+        // BUG FIX CORE FUNCTION
         function setupActionPanel() {
+            // Guard: wait until players list is populated
+            if (!playersList || playersList.length === 0) return;
+            
             const t = document.getElementById('action-title');
             const d = document.getElementById('action-desc');
             const icon = document.getElementById('action-icon');
-            let allowed = false; let filter = p => p.isAlive && p.uid !== myUid;
-
-            // 방어 코드: playersList가 비어있다면 일시적인 데이터 지연일 수 있으므로 다시 렌더링하도록 유도
-            if (!playersList || playersList.length === 0) {
-                 setTimeout(setupActionPanel, 500);
-                 return;
-            }
+            let allowed = false; 
+            let filter = p => p.isAlive && p.uid !== myUid; // Default filter
 
             if (gameState.phase === 'day_vote' && !amIDead) {
-                t.textContent = "투표 시간"; d.textContent = "처형할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-gavel text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-2";
-                allowed = true; filter = p => p.isAlive;
+                t.textContent = "투표 시간"; d.textContent = "처형할 대상을 고르세요."; 
+                icon.innerHTML = '<i class="fas fa-gavel text-3xl md:text-4xl"></i>'; 
+                icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-3 shadow-inner";
+                allowed = true; filter = p => p.isAlive; // Can vote anyone alive, including self in this variant
             } else if (gameState.phase === 'night_action' && !amIDead) {
-                if (myRole === '마피아') { t.textContent = "암살 대상 선택"; d.textContent = "제거할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-crosshairs text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2"; allowed = true; filter = p => p.isAlive && p.role !== '마피아'; }
-                else if (myRole === '의사') { t.textContent = "치료 대상 선택"; d.textContent = "살릴 사람을 고르세요 (자힐 가능)."; icon.innerHTML = '<i class="fas fa-medkit text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-green-500/20 text-green-400 mb-2"; allowed = true; filter = p => p.isAlive; }
-                else if (myRole === '경찰') { t.textContent = "수사 대상 선택"; d.textContent = "마피아 여부를 조사할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-search text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-blue-500/20 text-blue-400 mb-2"; allowed = true; }
-                else if (myRole === '택시 기사') { t.textContent = "탑승자 선택"; d.textContent = "택시에 태워 무적 보호할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-taxi text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-yellow-500/20 text-yellow-400 mb-2"; allowed = true; filter = p => p.isAlive; }
+                if (myRole === '마피아') { t.textContent = "암살 대상 선택"; d.textContent = "제거할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-crosshairs text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-rose-500/20 text-rose-400 mb-3 shadow-inner"; allowed = true; filter = p => p.isAlive && p.role !== '마피아'; }
+                else if (myRole === '의사') { t.textContent = "치료 대상 선택"; d.textContent = "살릴 사람을 고르세요 (자힐 가능)."; icon.innerHTML = '<i class="fas fa-medkit text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-emerald-500/20 text-emerald-400 mb-3 shadow-inner"; allowed = true; filter = p => p.isAlive; }
+                else if (myRole === '경찰') { t.textContent = "수사 대상 선택"; d.textContent = "마피아 여부를 조사할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-search text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-blue-500/20 text-blue-400 mb-3 shadow-inner"; allowed = true; }
+                else if (myRole === '택시 기사') { t.textContent = "탑승자 선택"; d.textContent = "택시에 태워 무적 보호할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-taxi text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-yellow-500/20 text-yellow-400 mb-3 shadow-inner"; allowed = true; filter = p => p.isAlive; }
             } else if (gameState.phase === 'day_soldier' && amIDead && myRole === '군인') {
-                t.textContent = "최후의 폭로"; d.textContent = "물귀신으로 정체를 밝힐 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-bomb text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-purple-500/20 text-purple-400 mb-2 animate-bounce"; allowed = true;
+                t.textContent = "최후의 폭로"; d.textContent = "물귀신으로 정체를 밝힐 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-bomb text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-purple-500/20 text-purple-400 mb-3 shadow-inner animate-bounce"; allowed = true;
             }
 
             if (!allowed) { 
                 elActionPanel.style.display = 'none';
-                showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-blue-300"); 
+                showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-indigo-300"); 
                 if(gameState.phase === 'night_action') renderNightStatus();
                 return; 
             }
 
             const targetList = document.getElementById('action-target-list');
+            const prevSelected = selectedTarget; // Preserve selection during updates
+            
             targetList.innerHTML = '';
             selectedTarget = null;
             document.getElementById('action-submit-btn').disabled = true;
 
             const filteredPlayers = playersList.filter(filter);
+            
             if (filteredPlayers.length === 0) {
-                targetList.innerHTML = '<div class="col-span-2 text-center text-gray-400 py-4 font-bold">선택 가능한 대상이 없습니다.</div>';
+                targetList.innerHTML = '<div class="col-span-1 sm:col-span-2 text-center text-gray-400 py-8 font-bold bg-black/20 rounded-xl">선택 가능한 대상이 없습니다.</div>';
             } else {
                 filteredPlayers.forEach(p => {
                     const btn = document.createElement('div');
-                    // 높이(min-h-[50px])를 명시적으로 주어 빈 공간이 되지 않도록 함
-                    btn.className = 'selectable p-3 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-sm md:text-base text-center text-white shadow-sm transition-all flex items-center justify-center min-h-[50px]';
+                    // Styling for list items. Ensuring they have intrinsic height and clear visual distinction.
+                    btn.className = 'selectable cursor-pointer p-4 rounded-2xl bg-stone-800/80 border border-stone-600 font-bold text-sm md:text-base text-center text-gray-200 shadow-sm flex items-center justify-center min-h-[60px] md:min-h-[70px]';
                     btn.textContent = p.name;
+                    
+                    // Restore previous selection
+                    if (p.uid === prevSelected) {
+                        btn.classList.add('selected');
+                        selectedTarget = p.uid;
+                        document.getElementById('action-submit-btn').disabled = false;
+                    }
+
                     btn.onclick = () => {
                         Array.from(targetList.children).forEach(c => c.classList.remove('selected'));
                         selectedTarget = p.uid;
@@ -717,15 +783,15 @@
             if (gameState.phase !== 'night_action') { box.innerHTML = ''; return; }
 
             const aliveRoles = new Set(playersList.filter(p => p.isAlive && p.role !== '시민').map(p => p.role));
-            let html = '<div class="inline-block bg-gray-900/80 p-5 rounded-2xl border border-blue-500/30 text-left min-w-[240px] shadow-lg"><div class="text-sm text-blue-400 font-black mb-3 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3">';
+            let html = '<div class="inline-block bg-gray-900/80 p-5 md:p-6 rounded-3xl border border-indigo-500/30 text-left min-w-[260px] shadow-2xl"><div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3.5">';
 
             ['마피아', '의사', '경찰', '택시 기사'].forEach(r => {
                 if (aliveRoles.has(r)) {
                     const isDone = currentActions.some(a => a.role === r);
-                    const icon = isDone ? '<i class="fas fa-check-circle text-green-400 text-lg"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
+                    const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
                     const color = isDone ? 'text-gray-200' : 'text-gray-500';
                     const textStatus = isDone ? '선택 완료' : '고민 중...';
-                    html += `<div class="flex items-center justify-between gap-6 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                    html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
                 }
             });
             html += '</div></div>';
@@ -733,14 +799,15 @@
         }
 
         document.getElementById('action-submit-btn').onclick = async () => {
-            if (!selectedTarget) return;
+            if (!selectedTarget || !user) return;
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: selectedTarget });
             elActionPanel.style.display = 'none'; 
-            showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-green-400");
+            showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-emerald-400");
             if(gameState.phase === 'night_action') renderNightStatus();
         };
 
         document.getElementById('action-skip-btn').onclick = async () => {
+            if (!user) return;
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: "SKIP" });
             elActionPanel.style.display = 'none'; 
             showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
@@ -750,12 +817,16 @@
         function showResultPanel(desc, iconClass = "fa-info-circle", colorClass = "text-white") {
             elResultPanel.style.display = 'block';
             document.getElementById('result-desc').innerHTML = (desc || gameState.logs).replace(/\n/g, '<br>');
-            document.getElementById('result-icon').className = `fas ${iconClass} text-6xl mb-6 ${colorClass} drop-shadow-[0_0_15px_currentColor]`;
+            document.getElementById('result-icon').className = `fas ${iconClass} text-5xl md:text-6xl mb-4 md:mb-6 ${colorClass} drop-shadow-[0_0_20px_currentColor]`;
         }
 
-        document.getElementById('ready-btn').addEventListener('click', async () => { await updateDoc(doc(PLAYERS_COL, myUid), { isReady: !isReady }); });
+        document.getElementById('ready-btn').addEventListener('click', async () => { 
+            if(!user) return;
+            await updateDoc(doc(PLAYERS_COL, myUid), { isReady: !isReady }); 
+        });
 
         ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).addEventListener('input', validateHostSettings); });
+        
         function validateHostSettings() {
             if(!isHost) return;
             const m = parseInt(document.getElementById('setting-mafia').value) || 0; const d = parseInt(document.getElementById('setting-doctor').value) || 0;
@@ -765,12 +836,12 @@
 
             const infoEl = document.getElementById('role-calc-info'); const startBtn = document.getElementById('start-game-btn');
             
-            if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 전체 인원보다 많습니다!</span>`; startBtn.disabled = true; } 
-            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시작 가능 (시민 ${citizenCount}명 자동 배정)</span>`; startBtn.disabled = false; }
+            if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-rose-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 인원보다 많습니다!</span>`; startBtn.disabled = true; } 
+            else { infoEl.innerHTML = `<span class="text-emerald-400"><i class="fas fa-check"></i> 시작 가능 (시민 ${citizenCount}명 배정됨)</span>`; startBtn.disabled = false; }
         }
 
         document.getElementById('start-game-btn').addEventListener('click', async () => {
-            if (!isHost || document.getElementById('start-game-btn').disabled) return;
+            if (!isHost || document.getElementById('start-game-btn').disabled || !user) return;
             
             const m = parseInt(document.getElementById('setting-mafia').value); const d = parseInt(document.getElementById('setting-doctor').value);
             const p = parseInt(document.getElementById('setting-police').value); const t = parseInt(document.getElementById('setting-taxi').value);
@@ -784,16 +855,17 @@
 
             for (let i = 0; i < playersList.length; i++) await updateDoc(doc(PLAYERS_COL, playersList[i].uid), { role: pool[i], isAlive: true, isReady: false });
             await sysChat("===== 게임이 시작되었습니다 =====");
-            await changePhase('day_discuss', 180, "아침이 밝았습니다.\n자신의 직업을 확인하고, 토론을 통해 마피아를 색출하세요.");
+            await changePhase('day_discuss', 120, "아침이 밝았습니다.\n자신의 직업을 확인하고, 토론을 통해 마피아를 색출하세요.");
         });
 
         async function wipeChatData() {
+            if(!user) return;
             const snap = await getDocs(CHAT_COL);
             const batch = []; snap.forEach(d => batch.push(deleteDoc(d.ref))); await Promise.all(batch);
         }
 
         document.getElementById('host-reset-btn').addEventListener('click', async () => {
-            if(!isHost) return; await wipeChatData();
+            if(!isHost || !user) return; await wipeChatData();
             for (let p of playersList) await updateDoc(doc(PLAYERS_COL, p.uid), { role: '시민', isAlive: true, isReady: false });
             await sysChat("방장이 게임을 초기화했습니다."); await changePhase('lobby', 0, "새 게임을 준비합니다.");
         });
@@ -813,26 +885,28 @@
         }
 
         async function executePhaseTransition() {
-            if (isTransitioning) return;
+            if (isTransitioning || !user) return;
             isTransitioning = true;
             
             try {
                 const p = gameState.phase;
-                if (p === 'day_discuss') { await clearActions(); await changePhase('day_vote', 40, "투표 시간이 되었습니다.\n가장 의심되는 사람을 처형대 위에 세우세요."); } 
+                if (p === 'day_discuss') { await clearActions(); await changePhase('day_vote', 30, "투표 시간이 되었습니다.\n가장 의심되는 사람을 처형대 위에 세우세요."); } 
                 else if (p === 'day_vote') { await calculateDayVote(); } 
                 else if (p === 'day_soldier') { await calculateSoldier(); } 
                 else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n특수직업들은 조용히 대상을 지목하세요."); } 
                 else if (p === 'night_action') { await calculateNightActions(); } 
-                else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 180, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론을 이어가세요."); }
-            } catch (err) { console.error(err); } finally { setTimeout(() => { isTransitioning = false; }, 2000); }
+                else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 120, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론을 이어가세요."); }
+            } catch (err) { console.error("Transition Error:", err); } finally { setTimeout(() => { isTransitioning = false; }, 2000); }
         }
 
         async function changePhase(newPhase, durationSec, logs) {
+            if(!user) return;
             await updateDoc(ROOM_DOC, { phase: newPhase, phaseEndsAt: Date.now() + (durationSec * 1000), logs: logs });
             await sysChat(`[시스템] ${logs.split('\n')[0]}`);
         }
 
         async function clearActions() {
+            if(!user) return;
             const snap = await getDocs(ACTIONS_COL);
             await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
         }
@@ -921,8 +995,8 @@
 
             const targetP = playersList.find(p => p.uid === myTarget);
             const isMafia = targetP && targetP.role === '마피아';
-            if (isMafia) txt.innerHTML = `<span class='text-red-400'>🚨 [${targetP.name}]님은 [마피아]가 맞습니다!</span>`;
-            else txt.innerHTML = `<span class='text-green-400'>✅ [${targetP.name}]님의 직업은 [ ${targetP.role} ] 입니다.</span>`;
+            if (isMafia) txt.innerHTML = `<span class='text-rose-400'>🚨 [${targetP.name}]님은 [마피아]가 맞습니다!</span>`;
+            else txt.innerHTML = `<span class='text-emerald-400'>✅ [${targetP.name}]님의 직업은 [ ${targetP.role} ] 입니다.</span>`;
         }
 
         async function checkWinCondition() {
@@ -938,7 +1012,7 @@
 
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault(); const text = document.getElementById('chat-input').value.trim();
-            if (!text || amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked) return;
+            if (!text || amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked || !user) return;
 
             const now = Date.now(); chatTimestamps = chatTimestamps.filter(t => now - t < 3000); chatTimestamps.push(now);
             if (chatTimestamps.length >= 4) {
@@ -950,19 +1024,21 @@
             await addDoc(CHAT_COL, { uid: myUid, name: myName, text: text, timestamp: Date.now() });
         });
 
-        async function sysChat(text) { await addDoc(CHAT_COL, { uid: 'SYSTEM', name: 'System', text: text, timestamp: Date.now() }); }
+        async function sysChat(text) { 
+            if(!user) return;
+            await addDoc(CHAT_COL, { uid: 'SYSTEM', name: 'System', text: text, timestamp: Date.now() }); 
+        }
 
         function startClientTimer() {
+            if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
                 if (['lobby', 'game_over'].includes(gameState.phase)) { document.getElementById('timer-display').textContent = '--:--'; return; }
                 let rem = Math.max(0, Math.floor((gameState.phaseEndsAt - Date.now()) / 1000));
                 let m = Math.floor(rem / 60).toString().padStart(2, '0'); let s = (rem % 60).toString().padStart(2, '0');
                 const tEl = document.getElementById('timer-display'); tEl.textContent = `${m}:${s}`;
-                if (rem <= 10) tEl.classList.replace('text-yellow-400', 'text-red-500'); else tEl.classList.replace('text-red-500', 'text-yellow-400');
+                if (rem <= 10) tEl.classList.replace('text-yellow-400', 'text-rose-500'); else tEl.classList.replace('text-rose-500', 'text-yellow-400');
             }, 200);
         }
-
-        init();
     </script>
 </body>
 </html>
