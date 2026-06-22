@@ -251,7 +251,7 @@
                         <p id="action-desc" class="text-gray-400 font-medium mt-1">대상을 신중하게 선택하세요.</p>
                     </div>
                     
-                    <div id="action-target-list" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2">
+                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-2 gap-3 auto-rows-max">
                         <!-- Selectables -->
                     </div>
 
@@ -705,7 +705,7 @@
 
             playersList.filter(filter).forEach(p => {
                 const btn = document.createElement('div');
-                btn.className = 'selectable p-4 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-lg text-center text-white shadow-sm transition-all';
+                btn.className = 'selectable p-3 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-sm md:text-base text-center text-white shadow-sm transition-all flex items-center justify-center min-h-[50px]';
                 btn.textContent = p.name;
                 btn.onclick = () => {
                     Array.from(targetList.children).forEach(c => c.classList.remove('selected'));
@@ -893,7 +893,27 @@
                 if (d.role === '택시 기사') taxi = d.target;
             });
 
-            let mTarget = mafia[0]; let deaths = []; let logs = "간밤에 아무 일도 일어나지 않았습니다.";
+            // 마피아 투표 취합 및 동점자 랜덤 처리
+            let mTarget = null;
+            if (mafia.length > 0) {
+                const voteCounts = {};
+                mafia.forEach(t => voteCounts[t] = (voteCounts[t] || 0) + 1);
+                
+                let maxVotes = 0;
+                let tiedTargets = [];
+                for (const [target, count] of Object.entries(voteCounts)) {
+                    if (count > maxVotes) {
+                        maxVotes = count;
+                        tiedTargets = [target];
+                    } else if (count === maxVotes) {
+                        tiedTargets.push(target);
+                    }
+                }
+                // 동점일 경우 묶인 타겟 중 하나를 무작위 선택
+                mTarget = tiedTargets[Math.floor(Math.random() * tiedTargets.length)];
+            }
+
+            let deaths = []; let logs = "간밤에 아무 일도 일어나지 않았습니다.";
 
             if (mTarget) {
                 const taxiPlayer = playersList.find(p => p.role === '택시 기사' && p.isAlive);
@@ -929,8 +949,8 @@
 
             const targetP = playersList.find(p => p.uid === myTarget);
             const isMafia = targetP && targetP.role === '마피아';
-            if (isMafia) txt.innerHTML = `<span class='text-red-400'>🚨 [${targetP.name}]님은 마피아가 맞습니다!</span>`;
-            else txt.innerHTML = `<span class='text-green-400'>✅ [${targetP.name}]님은 선량한 시민(또는 특수직업)입니다.</span>`;
+            if (isMafia) txt.innerHTML = `<span class='text-red-400'>🚨 [${targetP.name}]님은 [마피아]가 맞습니다!</span>`;
+            else txt.innerHTML = `<span class='text-green-400'>✅ [${targetP.name}]님의 직업은 [ ${targetP.role} ] 입니다.</span>`;
         }
 
         async function checkWinCondition() {
