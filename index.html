@@ -21,7 +21,7 @@
         }
         
         /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }
@@ -96,7 +96,7 @@
                 <p class="text-gray-400 mb-8 text-sm font-medium">18인제 실시간 심리전 마피아 게임</p>
                 
                 <div id="loading-auth" class="text-indigo-400 font-bold animate-pulse flex items-center justify-center gap-2 bg-indigo-900/20 py-3 rounded-xl border border-indigo-500/20">
-                    <i class="fas fa-circle-notch fa-spin"></i> 서버 접속 중...
+                    <i class="fas fa-circle-notch fa-spin"></i> 접속 준비 중...
                 </div>
 
                 <div id="auth-forms" style="display: none;">
@@ -197,7 +197,10 @@
             </div>
 
             <!-- Action Area -->
-            <div class="flex-1 flex items-center justify-center p-4 md:p-6 overflow-y-auto relative z-10">
+            <div class="flex-1 flex flex-col items-center justify-center p-4 md:p-6 overflow-y-auto relative z-10 gap-4">
+
+                <!-- [신규] Global Status Board (Visible to all during actions) -->
+                <div id="global-status-box" class="w-full max-w-lg shrink-0 transition-all duration-300" style="display: none;"></div>
                 
                 <!-- Lobby Panel -->
                 <div id="lobby-panel" class="w-full max-w-lg glass-panel p-6 md:p-8 rounded-3xl shadow-2xl relative overflow-hidden animate-pop" style="display: none;">
@@ -244,8 +247,8 @@
                     <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press disabled:opacity-50 disabled:cursor-not-allowed" style="display: none;">게임 시작</button>
                 </div>
 
-                <!-- Voting / Action Panel (Fix: Added flex flex-col to ensure proper layout) -->
-                <div id="action-panel" class="w-full max-w-lg action-theme p-6 md:p-8 rounded-[2rem] flex flex-col shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] relative animate-pop h-full max-h-[85vh]" style="display: none;">
+                <!-- Voting / Action Panel -->
+                <div id="action-panel" class="w-full max-w-lg action-theme p-6 md:p-8 rounded-[2rem] flex flex-col shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] relative animate-pop shrink-0" style="display: none;">
                     <div class="text-center mb-5 md:mb-6 shrink-0">
                         <div id="action-icon" class="inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-3 shadow-inner">
                             <i class="fas fa-gavel text-3xl"></i>
@@ -254,8 +257,7 @@
                         <p id="action-desc" class="text-gray-400 font-medium mt-1 text-sm md:text-base">처형할 대상을 고르세요.</p>
                     </div>
                     
-                    <!-- Fix: Added overflow-y-auto and ensuring flex child properties -->
-                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start">
+                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-1 sm:grid-cols-2 gap-3 content-start min-h-[150px] max-h-[40vh]">
                         <!-- Selectables injected here -->
                     </div>
 
@@ -266,15 +268,12 @@
                 </div>
 
                 <!-- Result Message Panel -->
-                <div id="result-panel" class="w-full max-w-lg glass-panel p-8 md:p-10 rounded-[2rem] text-center shadow-2xl relative overflow-hidden animate-pop" style="display: none;">
+                <div id="result-panel" class="w-full max-w-lg glass-panel p-8 md:p-10 rounded-[2rem] text-center shadow-2xl relative overflow-hidden animate-pop shrink-0" style="display: none;">
                     <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none"></div>
                     <div class="relative z-10">
                         <i id="result-icon" class="fas fa-bullhorn text-6xl mb-6 text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] filter"></i>
                         <h2 id="result-title" class="text-2xl md:text-3xl font-black text-white mb-4 tracking-tight">상황 보고</h2>
                         <div id="result-desc" class="text-gray-200 text-sm md:text-base leading-relaxed font-medium bg-black/50 p-5 rounded-2xl border border-white/10 shadow-inner">결과를 기다리는 중입니다.</div>
-                        
-                        <!-- Night Status Board -->
-                        <div id="dynamic-status-box" class="mt-6 flex justify-center"></div>
 
                         <div id="private-result-box" class="mt-6 p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-500/30 text-left shadow-lg" style="display: none;">
                             <div class="text-xs text-yellow-400 font-black mb-2 tracking-widest flex items-center gap-2"><i class="fas fa-lock text-sm"></i> SECRET REPORT</div>
@@ -343,6 +342,7 @@
 
         // State
         let user = null;
+        let baseUid = "";
         let myUid = null;
         let myName = "";
         let roomCode = "";
@@ -383,7 +383,7 @@
             return Math.floor(10000 + Math.random() * 90000).toString();
         }
 
-        // Auth Initialization (Rule 3)
+        // Auth Initialization
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -400,15 +400,7 @@
         onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 user = currentUser;
-                
-                // [수정됨] 같은 브라우저(다중 탭)에서도 각각 다른 유저로 접속할 수 있도록 세션 ID 부여
-                let tabId = sessionStorage.getItem('mafia_tab_id');
-                if (!tabId) {
-                    tabId = Math.random().toString(36).substring(2, 9);
-                    sessionStorage.setItem('mafia_tab_id', tabId);
-                }
-                myUid = user.uid + "_" + tabId; // 탭마다 고유한 UID 생성
-                
+                baseUid = user.uid; // Save Base UID
                 document.getElementById('loading-auth').style.display = 'none';
                 document.getElementById('auth-forms').style.display = 'block';
             }
@@ -453,29 +445,36 @@
             startClientTimer();
         }
 
+        // [핵심 변경] 이름(Name)을 기반으로 고유 myUid 생성하여, 브라우저 다중 탭 테스트를 완벽 지원
+        function applyUniqueUid(inputName) {
+            myName = inputName.trim();
+            const safeName = myName.replace(/\//g, '_');
+            myUid = baseUid + "_" + safeName; 
+        }
+
         document.getElementById('btn-submit-join').addEventListener('click', async () => {
             if (!user) return showToast("인증이 완료되지 않았습니다.");
             const rCode = document.getElementById('join-room-input').value.trim();
-            const nName = document.getElementById('join-name-input').value.trim();
-            if (!rCode || !nName) return showToast("방 번호와 닉네임을 모두 입력해주세요.");
+            const nName = document.getElementById('join-name-input').value;
+            if (!rCode || !nName.trim()) return showToast("방 번호와 닉네임을 모두 입력해주세요.");
 
             setupFirebasePaths(rCode);
             const roomSnap = await getDoc(ROOM_DOC);
             if (!roomSnap.exists()) return showToast("존재하지 않는 방입니다. 방 번호를 확인해주세요.");
 
-            myName = nName;
+            applyUniqueUid(nName);
             await setDoc(doc(PLAYERS_COL, myUid), { uid: myUid, name: myName, role: "시민", isAlive: true, isReady: false, joinedAt: Date.now() });
             enterMainScreen();
         });
 
         document.getElementById('btn-submit-create').addEventListener('click', async () => {
             if (!user) return showToast("인증이 완료되지 않았습니다.");
-            const nName = document.getElementById('create-name-input').value.trim();
-            if (!nName) return showToast("사용할 방장 닉네임을 입력해주세요.");
+            const nName = document.getElementById('create-name-input').value;
+            if (!nName.trim()) return showToast("사용할 방장 닉네임을 입력해주세요.");
 
-            myName = nName;
             const newCode = generateRoomCode();
             setupFirebasePaths(newCode);
+            applyUniqueUid(nName);
 
             await setDoc(ROOM_DOC, { phase: 'lobby', phaseEndsAt: 0, hostUid: myUid, logs: "방이 생성되었습니다. 참가자를 기다립니다." });
             await setDoc(doc(PLAYERS_COL, myUid), { uid: myUid, name: myName, role: "시민", isAlive: true, isReady: true, joinedAt: Date.now() });
@@ -539,11 +538,10 @@
                 renderPlayerList();
                 if(isHost) validateHostSettings();
                 
-                // BUG FIX: Ensure Action Panel is re-rendered when players list is updated
                 if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
                     setupActionPanel();
+                    renderActionStatus();
                 }
-                if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) renderActionStatus();
             }, (err) => console.error(err));
 
             unsubActions = onSnapshot(ACTIONS_COL, (snapshot) => {
@@ -661,8 +659,11 @@
             elActionPanel.style.display = 'none';
             elResultPanel.style.display = 'none';
             document.getElementById('private-result-box').style.display = 'none';
-            document.getElementById('dynamic-status-box').innerHTML = '';
             document.getElementById('host-reset-btn').style.display = 'none';
+
+            // [신규] 액션 페이즈에서 글로벌 상태 보드를 항상 상단에 표시
+            const isActionPhase = ['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase);
+            document.getElementById('global-status-box').style.display = isActionPhase ? 'block' : 'none';
 
             let canChat = false; let dMsg = ""; let iconClass = "fa-lock"; let msgColor = "text-gray-300";
             if (isSpamLocked) { dMsg = "도배 방지 (잠금됨)"; iconClass = "fa-ban text-rose-500 animate-pulse"; msgColor = "text-rose-400"; }
@@ -690,8 +691,8 @@
                 const btn = document.getElementById('ready-btn');
                 btn.textContent = isReady ? "준비 완료 (취소하려면 클릭)" : "준비하기";
                 btn.className = isReady ? "w-full py-4 bg-slate-600 hover:bg-slate-500 rounded-2xl font-bold transition text-white text-xl shadow-inner btn-press border border-slate-500" : "w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
-            } else if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
-                elActionPanel.style.display = 'flex'; // Explicitly set to flex
+            } else if (isActionPhase) {
+                elActionPanel.style.display = 'flex'; 
                 setupActionPanel();
             } else if (gameState.phase === 'day_discuss') {
                 let iconClass = "fa-sun"; let colorClass = "text-yellow-400";
@@ -718,22 +719,20 @@
             }
         }
 
-        // BUG FIX CORE FUNCTION
         function setupActionPanel() {
-            // Guard: wait until players list is populated
             if (!playersList || playersList.length === 0) return;
             
             const t = document.getElementById('action-title');
             const d = document.getElementById('action-desc');
             const icon = document.getElementById('action-icon');
             let allowed = false; 
-            let filter = p => p.isAlive && p.uid !== myUid; // Default filter
+            let filter = p => p.isAlive && p.uid !== myUid; 
 
             if (gameState.phase === 'day_vote' && !amIDead) {
                 t.textContent = "투표 시간"; d.textContent = "처형할 대상을 고르세요."; 
                 icon.innerHTML = '<i class="fas fa-gavel text-3xl md:text-4xl"></i>'; 
                 icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-3 shadow-inner";
-                allowed = true; filter = p => p.isAlive; // Can vote anyone alive, including self in this variant
+                allowed = true; filter = p => p.isAlive; 
             } else if (gameState.phase === 'night_action' && !amIDead) {
                 if (myRole === '마피아') { t.textContent = "암살 대상 선택"; d.textContent = "제거할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-crosshairs text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-rose-500/20 text-rose-400 mb-3 shadow-inner"; allowed = true; filter = p => p.isAlive && p.role !== '마피아'; }
                 else if (myRole === '의사') { t.textContent = "치료 대상 선택"; d.textContent = "살릴 사람을 고르세요 (자힐 가능)."; icon.innerHTML = '<i class="fas fa-medkit text-3xl md:text-4xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-emerald-500/20 text-emerald-400 mb-3 shadow-inner"; allowed = true; filter = p => p.isAlive; }
@@ -746,12 +745,11 @@
             if (!allowed) { 
                 elActionPanel.style.display = 'none';
                 showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-indigo-300"); 
-                if(['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) renderActionStatus();
                 return; 
             }
 
             const targetList = document.getElementById('action-target-list');
-            const prevSelected = selectedTarget; // Preserve selection during updates
+            const prevSelected = selectedTarget; 
             
             targetList.innerHTML = '';
             selectedTarget = null;
@@ -764,11 +762,9 @@
             } else {
                 filteredPlayers.forEach(p => {
                     const btn = document.createElement('div');
-                    // Styling for list items. Ensuring they have intrinsic height and clear visual distinction.
                     btn.className = 'selectable cursor-pointer p-4 rounded-2xl bg-stone-800/80 border border-stone-600 font-bold text-sm md:text-base text-center text-gray-200 shadow-sm flex items-center justify-center min-h-[60px] md:min-h-[70px]';
                     btn.textContent = p.name;
                     
-                    // Restore previous selection
                     if (p.uid === prevSelected) {
                         btn.classList.add('selected');
                         selectedTarget = p.uid;
@@ -786,49 +782,52 @@
             }
         }
 
-        // [수정됨] 낮 투표 현황과 밤 행동 현황을 모두 보여주도록 통합 및 업그레이드
+        // [신규] 항상 행동 패널 최상단에 보여져 실시간 공유를 담당하는 함수
         function renderActionStatus() {
-            const box = document.getElementById('dynamic-status-box');
+            const box = document.getElementById('global-status-box');
             if (!['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) { 
                 box.innerHTML = ''; 
                 return; 
             }
 
-            let html = '<div class="inline-block bg-gray-900/80 p-5 md:p-6 rounded-3xl border border-indigo-500/30 text-left min-w-[260px] shadow-2xl">';
+            let html = '<div class="glass-panel p-4 rounded-2xl border border-indigo-500/30 shadow-lg">';
 
             if (gameState.phase === 'day_vote') {
-                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-check-to-slot mr-2 animate-pulse"></i>투표 진행 현황</div><div class="space-y-3.5 max-h-48 overflow-y-auto pr-2">';
+                html += '<div class="text-xs text-indigo-400 font-black mb-3 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-check-to-slot mr-2 animate-pulse"></i>모두의 투표 현황 (내용은 비공개)</div>';
+                html += '<div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scrollbar pr-1">';
                 
                 const alivePlayers = playersList.filter(p => p.isAlive);
                 alivePlayers.forEach(p => {
                     const isDone = currentActions.some(a => a.uid === p.uid && a.phase === 'day_vote');
-                    const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
-                    const color = isDone ? 'text-gray-200' : 'text-gray-500';
-                    const textStatus = isDone ? '완료' : '고민 중...';
-                    html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${p.name}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                    const icon = isDone ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-spinner fa-spin"></i>';
+                    const styles = isDone ? 'bg-emerald-900/40 text-emerald-300 border-emerald-500/50' : 'bg-gray-800/60 text-gray-400 border-gray-600/50';
+                    html += `<div class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border shadow-sm transition-all ${styles}"><span>${p.name}</span> ${icon}</div>`;
                 });
+                html += '</div>';
                 
             } else if (gameState.phase === 'night_action') {
-                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3.5">';
+                html += '<div class="text-xs text-indigo-400 font-black mb-3 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div>';
+                html += '<div class="flex flex-wrap gap-2 max-h-24 overflow-y-auto pr-1">';
                 const aliveRoles = new Set(playersList.filter(p => p.isAlive && p.role !== '시민').map(p => p.role));
                 ['마피아', '의사', '경찰', '택시 기사'].forEach(r => {
                     if (aliveRoles.has(r)) {
                         const isDone = currentActions.some(a => a.role === r && a.phase === 'night_action');
-                        const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
-                        const color = isDone ? 'text-gray-200' : 'text-gray-500';
-                        const textStatus = isDone ? '완료' : '고민 중...';
-                        html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                        const icon = isDone ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-spinner fa-spin"></i>';
+                        const styles = isDone ? 'bg-indigo-900/40 text-indigo-300 border-indigo-500/50' : 'bg-gray-800/60 text-gray-400 border-gray-600/50';
+                        html += `<div class="px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 border shadow-sm transition-all ${styles}"><span>${r}</span> ${icon}</div>`;
                     }
                 });
+                html += '</div>';
+                
             } else if (gameState.phase === 'day_soldier') {
-                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-bomb mr-2 animate-pulse"></i>군인 최후의 행동</div><div class="space-y-3.5">';
+                html += '<div class="text-xs text-indigo-400 font-black mb-3 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-bomb mr-2 animate-pulse"></i>군인 최후의 행동</div>';
                 const isDone = currentActions.some(a => a.role === '군인' && a.phase === 'day_soldier');
-                const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
-                const color = isDone ? 'text-gray-200' : 'text-gray-500';
-                html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>군인</span> <span class="flex items-center gap-2">${isDone ? '완료' : '선택 중...'} ${icon}</span></div>`;
+                const icon = isDone ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-spinner fa-spin"></i>';
+                const styles = isDone ? 'bg-rose-900/40 text-rose-300 border-rose-500/50' : 'bg-gray-800/60 text-gray-400 border-gray-600/50';
+                html += `<div class="inline-flex px-3 py-1.5 rounded-xl text-xs font-bold items-center gap-1.5 border shadow-sm transition-all ${styles}"><span>군인</span> ${icon}</div>`;
             }
 
-            html += '</div></div>';
+            html += '</div>';
             box.innerHTML = html;
         }
 
@@ -837,7 +836,6 @@
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: selectedTarget });
             elActionPanel.style.display = 'none'; 
             showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-emerald-400");
-            renderActionStatus();
         };
 
         document.getElementById('action-skip-btn').onclick = async () => {
@@ -845,7 +843,6 @@
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: "SKIP" });
             elActionPanel.style.display = 'none'; 
             showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
-            renderActionStatus();
         };
 
         function showResultPanel(desc, iconClass = "fa-info-circle", colorClass = "text-white") {
@@ -908,7 +905,7 @@
             if (isHost && !isTransitioning) executePhaseTransition(); 
         });
 
-        // [수정됨] 모든 유저가 행동을 마치면 즉시 턴을 넘기는 자동 패스(Auto-Advance) 로직 추가
+        // [핵심 변경] 모든 유저가 투표/행동을 마치면 남은 시간 무시하고 즉시 다음 턴으로 넘김(Auto-Advance)
         function startHostLoop() {
             if (hostLoopInterval) clearInterval(hostLoopInterval);
             hostLoopInterval = setInterval(() => {
@@ -918,7 +915,6 @@
                 const p = gameState.phase;
                 const currentPhaseActions = currentActions.filter(a => a.phase === p).length;
 
-                // 각 페이즈별 예상 완료 인원 계산
                 if (p === 'day_vote') {
                     const aliveCount = playersList.filter(pl => pl.isAlive).length;
                     if (aliveCount > 0 && currentPhaseActions >= aliveCount) isAllActionDone = true;
@@ -929,7 +925,6 @@
                     if (currentPhaseActions >= 1) isAllActionDone = true;
                 }
 
-                // 타이머가 종료되거나, 모든 참가자가 행동을 완료했을 경우 즉시 다음 페이즈로 전환
                 if ((Date.now() >= gameState.phaseEndsAt || isAllActionDone) && !isTransitioning) {
                     executePhaseTransition();
                 }
