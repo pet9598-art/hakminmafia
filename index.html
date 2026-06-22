@@ -74,7 +74,6 @@
     <!-- Auth / Login Screen -->
     <div id="auth-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm">
         <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden border border-gray-600/30">
-            <!-- Decorative blobs -->
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
             <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
 
@@ -89,14 +88,12 @@
                     <i class="fas fa-circle-notch fa-spin"></i> 서버 연결 중...
                 </div>
 
-                <div id="auth-forms" class="hidden">
-                    <!-- Tabs -->
+                <div id="auth-forms" style="display: none;">
                     <div class="flex p-1 bg-gray-800/80 rounded-xl mb-6 border border-gray-700/50">
                         <button id="tab-join" class="flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md transition-all">방 참가하기</button>
                         <button id="tab-create" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">새 방 만들기</button>
                     </div>
 
-                    <!-- Join Room Tab -->
                     <div id="content-join" class="tab-content active space-y-4">
                         <div class="relative">
                             <i class="fas fa-hashtag absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
@@ -111,7 +108,6 @@
                         </button>
                     </div>
 
-                    <!-- Create Room Tab -->
                     <div id="content-create" class="tab-content space-y-4">
                         <div class="relative">
                             <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
@@ -128,7 +124,7 @@
     </div>
 
     <!-- Main Game Interface -->
-    <div id="main-screen" class="hidden flex-1 flex flex-col md:flex-row h-full">
+    <div id="main-screen" class="flex-1 flex flex-col md:flex-row h-full" style="display: none;">
         
         <!-- Left Panel: Game Info & Players -->
         <div class="w-full md:w-[320px] h-1/3 md:h-full border-b md:border-r border-gray-700/50 flex flex-col glass-panel z-20 shrink-0">
@@ -144,7 +140,7 @@
                 </div>
                 
                 <!-- Touch to Reveal Role -->
-                <div id="role-container" class="hidden relative border border-gray-600/50 rounded-xl bg-gray-800/80 overflow-hidden no-select shadow-lg group">
+                <div id="role-container" class="relative border border-gray-600/50 rounded-xl bg-gray-800/80 overflow-hidden no-select shadow-lg group" style="display: none;">
                     <div id="role-cover" class="absolute inset-0 bg-gradient-to-br from-gray-700 to-gray-800 flex items-center justify-center cursor-pointer text-gray-300 font-bold hover:text-white transition-all z-10">
                         <i class="fas fa-fingerprint text-2xl mr-2 group-hover:scale-110 transition-transform"></i> <span class="tracking-wide">터치하여 직업 확인 (3초)</span>
                     </div>
@@ -182,7 +178,7 @@
                 </div>
                 <div class="text-right bg-black/40 px-6 py-2 rounded-2xl border border-white/10 shadow-inner flex flex-col items-end">
                     <div class="flex items-center gap-3 mb-1">
-                        <button id="host-quick-skip-btn" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 rounded text-[10px] font-bold text-white hidden btn-press shadow-md"><i class="fas fa-forward"></i> 방장 스킵</button>
+                        <button id="host-quick-skip-btn" class="px-2 py-1 bg-purple-600 hover:bg-purple-500 rounded text-[10px] font-bold text-white shadow-md btn-press" style="display: none;"><i class="fas fa-forward"></i> 방장 스킵</button>
                         <div class="text-xs text-gray-400 font-bold tracking-wider">남은 시간</div>
                     </div>
                     <div id="timer-display" class="text-3xl font-mono text-yellow-400 font-black tracking-widest drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]">--:--</div>
@@ -193,13 +189,11 @@
             <div class="flex-1 flex items-center justify-center p-6 overflow-y-auto relative z-10">
                 
                 <!-- Lobby Panel -->
-                <div id="lobby-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl hidden shadow-2xl relative overflow-hidden">
+                <div id="lobby-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl shadow-2xl relative overflow-hidden" style="display: none;">
                     <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-                    
                     <h3 class="text-2xl font-black mb-6 text-center text-white">게임 대기실</h3>
                     
-                    <!-- Host Settings -->
-                    <div id="host-settings-area" class="mb-6 hidden">
+                    <div id="host-settings-area" class="mb-6" style="display: none;">
                         <div class="bg-gray-900/50 rounded-2xl p-5 border border-gray-700/50">
                             <div class="text-sm text-blue-400 mb-4 font-bold flex items-center gap-2">
                                 <i class="fas fa-sliders-h"></i> 직업 설정 (방장 전용)
@@ -230,19 +224,17 @@
                         </div>
                     </div>
 
-                    <!-- Non-Host Area -->
-                    <div id="player-ready-area" class="text-center mb-6 hidden p-6 bg-gray-900/50 rounded-2xl border border-gray-700/50">
+                    <div id="player-ready-area" class="text-center mb-6 p-6 bg-gray-900/50 rounded-2xl border border-gray-700/50" style="display: none;">
                         <i class="fas fa-gamepad text-4xl text-gray-500 mb-3"></i>
                         <p class="text-gray-300 font-medium">방장의 게임 시작을 기다리고 있습니다.<br><span class="text-blue-400 font-bold mt-1 inline-block">하단의 준비 버튼을 눌러주세요.</span></p>
                     </div>
 
-                    <!-- Buttons -->
-                    <button id="ready-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press hidden">준비 완료</button>
-                    <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press hidden disabled:opacity-50 disabled:cursor-not-allowed">게임 시작</button>
+                    <button id="ready-btn" class="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press" style="display: none;">준비 완료</button>
+                    <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press disabled:opacity-50 disabled:cursor-not-allowed" style="display: none;">게임 시작</button>
                 </div>
 
                 <!-- Voting / Action Panel -->
-                <div id="action-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl hidden flex flex-col h-full max-h-[90%] shadow-2xl">
+                <div id="action-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl flex-col h-full max-h-[90%] shadow-2xl" style="display: none;">
                     <div class="text-center mb-6">
                         <div id="action-icon" class="inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2">
                             <i class="fas fa-crosshairs text-3xl"></i>
@@ -251,7 +243,7 @@
                         <p id="action-desc" class="text-gray-400 font-medium mt-1">대상을 신중하게 선택하세요.</p>
                     </div>
                     
-                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-2 gap-3 auto-rows-max">
+                    <div id="action-target-list" class="flex-1 overflow-y-auto mb-6 pr-2 grid grid-cols-1 md:grid-cols-2 gap-3 content-start">
                         <!-- Selectables -->
                     </div>
 
@@ -262,24 +254,24 @@
                 </div>
 
                 <!-- Result Message Panel -->
-                <div id="result-panel" class="w-full max-w-lg glass-panel p-10 rounded-3xl hidden text-center shadow-2xl relative overflow-hidden">
+                <div id="result-panel" class="w-full max-w-lg glass-panel p-10 rounded-3xl text-center shadow-2xl relative overflow-hidden" style="display: none;">
                     <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/60 pointer-events-none"></div>
                     <div class="relative z-10">
                         <i id="result-icon" class="fas fa-bullhorn text-6xl mb-6 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] filter"></i>
                         <h2 id="result-title" class="text-3xl font-black text-white mb-4 tracking-tight">결과 발표</h2>
                         <p id="result-desc" class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10">결과를 기다리는 중입니다.</p>
                         
-                        <!-- Night Status Board (Visible to everyone) -->
+                        <!-- Night Status Board -->
                         <div id="dynamic-status-box" class="mt-4 flex justify-center"></div>
 
-                        <div id="private-result-box" class="mt-6 p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-500/30 hidden text-left shadow-lg">
+                        <div id="private-result-box" class="mt-6 p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-500/30 text-left shadow-lg" style="display: none;">
                             <div class="text-xs text-yellow-400 font-black mb-2 tracking-wider flex items-center gap-2"><i class="fas fa-lock text-sm"></i> SECRET REPORT</div>
                             <div id="private-result-text" class="text-base text-white font-medium"></div>
                         </div>
 
                         <!-- Host Controls -->
                         <div class="mt-8 flex justify-center gap-3">
-                            <button id="host-reset-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-bold hidden shadow-lg shadow-red-500/30 btn-press"><i class="fas fa-undo mr-2"></i>대기실 복귀</button>
+                            <button id="host-reset-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-bold shadow-lg shadow-red-500/30 btn-press" style="display: none;"><i class="fas fa-undo mr-2"></i>대기실 복귀</button>
                         </div>
                     </div>
                 </div>
@@ -297,8 +289,7 @@
                 <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">채팅 내역이 보호되고 있습니다.</div>
             </div>
 
-            <!-- Chat Overlay -->
-            <div id="chat-overlay" class="absolute inset-x-0 bottom-[76px] top-[61px] bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-md hidden border-t border-gray-700/50">
+            <div id="chat-overlay" class="absolute inset-x-0 bottom-[76px] top-[61px] bg-gray-900/80 z-20 flex items-center justify-center backdrop-blur-md border-t border-gray-700/50" style="display: none;">
                 <div class="text-center transform transition-transform hover:scale-105">
                     <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner border border-gray-700">
                         <i id="chat-lock-icon" class="fas fa-lock text-2xl text-gray-400"></i>
@@ -349,17 +340,21 @@
         
         let gameState = { phase: 'lobby', phaseEndsAt: 0, logs: "", hostUid: "" };
         let playersList = [];
-        let currentActions = []; // 밤 페이즈 현황용
+        let currentActions = []; 
         
         let hostLoopInterval = null;
         let timerInterval = null;
         let hasJoined = false;
-        let isTransitioning = false; // 중복 스킵/페이즈 넘김 방지용 락 플래그
+        let isTransitioning = false; 
 
         let chatTimestamps = [];
         let isSpamLocked = false;
 
-        // Toast Helper
+        // UI Helpers
+        const elLobbyPanel = document.getElementById('lobby-panel');
+        const elActionPanel = document.getElementById('action-panel');
+        const elResultPanel = document.getElementById('result-panel');
+
         function showToast(msg) {
             const toast = document.getElementById('toast-container');
             document.getElementById('toast-msg').textContent = msg;
@@ -367,12 +362,10 @@
             setTimeout(() => toast.classList.remove('toast-show'), 3000);
         }
 
-        // Generate Random Code (5 chars numbers only)
         function generateRoomCode() {
             return Math.floor(10000 + Math.random() * 90000).toString();
         }
 
-        // Tab Switching Logic
         const tabJoin = document.getElementById('tab-join');
         const tabCreate = document.getElementById('tab-create');
         const contentJoin = document.getElementById('content-join');
@@ -392,7 +385,6 @@
         tabJoin.onclick = () => switchTab(true);
         tabCreate.onclick = () => switchTab(false);
 
-        // Init Auth
         async function init() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -404,8 +396,8 @@
                 if (!tabId) { tabId = Math.random().toString(36).substring(2, 9); sessionStorage.setItem('mafia_tab_id', tabId); }
                 myUid = auth.currentUser.uid + "_" + tabId;
                 
-                document.getElementById('loading-auth').classList.add('hidden');
-                document.getElementById('auth-forms').classList.remove('hidden');
+                document.getElementById('loading-auth').style.display = 'none';
+                document.getElementById('auth-forms').style.display = 'block';
             } catch (error) {
                 document.getElementById('loading-auth').innerHTML = `<span class="text-red-500">인증 실패</span>`;
             }
@@ -422,8 +414,8 @@
 
         async function enterMainScreen() {
             hasJoined = true;
-            document.getElementById('auth-screen').classList.add('hidden');
-            document.getElementById('main-screen').classList.remove('hidden');
+            document.getElementById('auth-screen').style.display = 'none';
+            document.getElementById('main-screen').style.display = 'flex';
             setupListeners();
             startClientTimer();
         }
@@ -457,7 +449,6 @@
             sysChat(`방이 생성되었습니다. 친구들에게 방 번호 [${newCode}] 를 공유하세요!`);
         });
 
-        // ----------------- Core Game Logic Listeners -----------------
         function setupListeners() {
             onSnapshot(ROOM_DOC, (docSnap) => {
                 if (!docSnap.exists()) { alert("방이 삭제되었습니다."); window.location.reload(); return; }
@@ -467,11 +458,11 @@
                 if (isHost && !hostLoopInterval) startHostLoop();
                 if (!isHost && hostLoopInterval) { clearInterval(hostLoopInterval); hostLoopInterval = null; }
 
-                document.getElementById('host-settings-area').classList.toggle('hidden', !isHost);
-                document.getElementById('start-game-btn').classList.toggle('hidden', !isHost);
-                document.getElementById('player-ready-area').classList.toggle('hidden', isHost);
-                document.getElementById('ready-btn').classList.toggle('hidden', isHost);
-                document.getElementById('host-quick-skip-btn').classList.toggle('hidden', !isHost);
+                document.getElementById('host-settings-area').style.display = isHost ? 'block' : 'none';
+                document.getElementById('start-game-btn').style.display = isHost ? 'block' : 'none';
+                document.getElementById('player-ready-area').style.display = !isHost ? 'block' : 'none';
+                document.getElementById('ready-btn').style.display = !isHost ? 'block' : 'none';
+                document.getElementById('host-quick-skip-btn').style.display = isHost ? 'flex' : 'none';
                 
                 ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).disabled = !isHost; });
                 validateHostSettings(); 
@@ -492,22 +483,19 @@
                     const roleText = document.getElementById('my-role-text');
                     
                     if (gameState.phase !== 'lobby') {
-                        roleContainer.classList.remove('hidden');
+                        roleContainer.style.display = 'block';
                         roleText.textContent = amIDead ? '사망함' : myRole;
                         if (amIDead) { roleText.className = "text-2xl font-black text-red-500 drop-shadow-md"; roleText.parentElement.parentElement.classList.replace('bg-gray-800/80', 'bg-red-900/30'); }
                         else roleText.className = "text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-md";
-                    } else { roleContainer.classList.add('hidden'); }
+                    } else { roleContainer.style.display = 'none'; }
                 }
 
                 document.getElementById('player-count').textContent = `${playersList.length}/18`;
                 renderPlayerList();
                 if(isHost) validateHostSettings();
-                
-                // Refresh night status board if players change
                 if (gameState.phase === 'night_action') renderNightStatus();
             });
 
-            // Listen to Actions for Live Progress Board
             onSnapshot(ACTIONS_COL, (snapshot) => {
                 currentActions = [];
                 snapshot.forEach(doc => currentActions.push(doc.data()));
@@ -581,7 +569,6 @@
             });
         }
 
-        // Role Reveal Click/Touch Events (3초간 보여주기 토글)
         const roleCover = document.getElementById('role-cover');
         let roleViewTimer = null;
         const toggleRoleView = (e) => { 
@@ -592,11 +579,6 @@
         }
         roleCover.addEventListener('mousedown', toggleRoleView);
         roleCover.addEventListener('touchstart', toggleRoleView);
-
-        // --- Visual & Phase Router ---
-        const elLobbyPanel = document.getElementById('lobby-panel');
-        const elActionPanel = document.getElementById('action-panel');
-        const elResultPanel = document.getElementById('result-panel');
 
         function updatePhaseUI() {
             const phaseInfo = {
@@ -620,19 +602,21 @@
             bgEl.className = `flex-1 h-1/3 md:h-full flex flex-col relative border-b md:border-b-0 md:border-r border-gray-700/50 overflow-hidden ${curr.bg}`;
             document.getElementById('bg-visual-icon').className = `fas ${curr.vIcon} text-[18rem] absolute transform -rotate-12 transition-all duration-1000`;
 
-            elLobbyPanel.classList.add('hidden'); elActionPanel.classList.add('hidden'); elResultPanel.classList.add('hidden');
-            document.getElementById('private-result-box').classList.add('hidden');
-            document.getElementById('dynamic-status-box').innerHTML = ''; // Reset night status board
-            document.getElementById('host-reset-btn').classList.add('hidden');
+            // Explicit Display Control (No Tailwind Class conflicts)
+            elLobbyPanel.style.display = 'none';
+            elActionPanel.style.display = 'none';
+            elResultPanel.style.display = 'none';
+            document.getElementById('private-result-box').style.display = 'none';
+            document.getElementById('dynamic-status-box').innerHTML = '';
+            document.getElementById('host-reset-btn').style.display = 'none';
 
-            // Chat Control
             let canChat = false; let dMsg = ""; let iconClass = "fa-lock"; let msgColor = "text-gray-300";
             if (isSpamLocked) { dMsg = "도배 방지 (잠금됨)"; iconClass = "fa-ban text-red-500 animate-pulse"; msgColor = "text-red-400"; }
             else if (amIDead) { dMsg = "사망자는 채팅을 할 수 없습니다"; }
             else if (['lobby', 'day_discuss', 'game_over'].includes(gameState.phase)) { canChat = true; }
             else { dMsg = "지금은 쉿! 채팅 금지"; }
 
-            document.getElementById('chat-overlay').classList.toggle('hidden', canChat);
+            document.getElementById('chat-overlay').style.display = canChat ? 'none' : 'flex';
             document.getElementById('chat-disabled-msg').textContent = dMsg;
             document.getElementById('chat-disabled-msg').className = `font-bold tracking-wide mt-2 ${msgColor}`;
             document.getElementById('chat-lock-icon').className = `fas ${iconClass} text-2xl`;
@@ -640,14 +624,14 @@
 
             // Panel Router
             if (gameState.phase === 'lobby') {
-                elLobbyPanel.classList.remove('hidden');
+                elLobbyPanel.style.display = 'block';
                 const btn = document.getElementById('ready-btn');
                 btn.textContent = isReady ? "준비 완료 (취소하려면 클릭)" : "준비하기";
                 btn.className = isReady ? "w-full py-4 bg-gray-600 hover:bg-gray-500 rounded-xl font-bold transition text-white text-xl shadow-inner btn-press" : "w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
             } else if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
+                elActionPanel.style.display = 'flex';
                 setupActionPanel();
             } else if (gameState.phase === 'day_discuss') {
-                // 낮 토론 페이즈: 화면 중앙에 대문짝만하게 직업 보여주기
                 let iconClass = "fa-sun"; let colorClass = "text-yellow-400";
                 if (myRole === '마피아') { iconClass = "fa-user-secret"; colorClass = "text-red-500"; }
                 else if (myRole === '의사') { iconClass = "fa-user-nurse"; colorClass = "text-green-400"; }
@@ -667,7 +651,7 @@
                 );
             } else {
                 showResultPanel();
-                if (gameState.phase === 'game_over' && isHost) document.getElementById('host-reset-btn').classList.remove('hidden');
+                if (gameState.phase === 'game_over' && isHost) document.getElementById('host-reset-btn').style.display = 'inline-block';
                 if (gameState.phase === 'night_result' && myRole === '경찰') renderPoliceResult();
             }
         }
@@ -691,33 +675,36 @@
             }
 
             if (!allowed) { 
+                elActionPanel.style.display = 'none';
                 showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-blue-300"); 
-                // 밤에는 상황판 렌더링
                 if(gameState.phase === 'night_action') renderNightStatus();
                 return; 
             }
 
-            elActionPanel.classList.remove('hidden');
             const targetList = document.getElementById('action-target-list');
             targetList.innerHTML = '';
             selectedTarget = null;
             document.getElementById('action-submit-btn').disabled = true;
 
-            playersList.filter(filter).forEach(p => {
-                const btn = document.createElement('div');
-                btn.className = 'selectable p-3 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-sm md:text-base text-center text-white shadow-sm transition-all flex items-center justify-center min-h-[50px]';
-                btn.textContent = p.name;
-                btn.onclick = () => {
-                    Array.from(targetList.children).forEach(c => c.classList.remove('selected'));
-                    selectedTarget = p.uid;
-                    btn.classList.add('selected');
-                    document.getElementById('action-submit-btn').disabled = false;
-                };
-                targetList.appendChild(btn);
-            });
+            const filteredPlayers = playersList.filter(filter);
+            if (filteredPlayers.length === 0) {
+                targetList.innerHTML = '<div class="col-span-2 text-center text-gray-400 py-4 font-bold">선택 가능한 대상이 없습니다.</div>';
+            } else {
+                filteredPlayers.forEach(p => {
+                    const btn = document.createElement('div');
+                    btn.className = 'selectable p-3 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-sm md:text-base text-center text-white shadow-sm transition-all flex items-center justify-center min-h-[50px]';
+                    btn.textContent = p.name;
+                    btn.onclick = () => {
+                        Array.from(targetList.children).forEach(c => c.classList.remove('selected'));
+                        selectedTarget = p.uid;
+                        btn.classList.add('selected');
+                        document.getElementById('action-submit-btn').disabled = false;
+                    };
+                    targetList.appendChild(btn);
+                });
+            }
         }
 
-        // Night Action Progress Board (Visible to all in center)
         function renderNightStatus() {
             const box = document.getElementById('dynamic-status-box');
             if (gameState.phase !== 'night_action') { box.innerHTML = ''; return; }
@@ -741,20 +728,20 @@
         document.getElementById('action-submit-btn').onclick = async () => {
             if (!selectedTarget) return;
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: selectedTarget });
-            elActionPanel.classList.add('hidden'); 
+            elActionPanel.style.display = 'none'; 
             showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-green-400");
             if(gameState.phase === 'night_action') renderNightStatus();
         };
 
         document.getElementById('action-skip-btn').onclick = async () => {
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: "SKIP" });
-            elActionPanel.classList.add('hidden'); 
+            elActionPanel.style.display = 'none'; 
             showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
             if(gameState.phase === 'night_action') renderNightStatus();
         };
 
         function showResultPanel(desc, iconClass = "fa-info-circle", colorClass = "text-white") {
-            elResultPanel.classList.remove('hidden');
+            elResultPanel.style.display = 'block';
             document.getElementById('result-desc').innerHTML = (desc || gameState.logs).replace(/\n/g, '<br>');
             document.getElementById('result-icon').className = `fas ${iconClass} text-6xl mb-6 ${colorClass} drop-shadow-[0_0_15px_currentColor]`;
         }
@@ -772,10 +759,9 @@
             const infoEl = document.getElementById('role-calc-info'); const startBtn = document.getElementById('start-game-btn');
             
             if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 전체 인원보다 많습니다!</span>`; startBtn.disabled = true; } 
-            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시민 ${citizenCount}명 자동 배정 예정 (강제 시작 가능)</span>`; startBtn.disabled = false; }
+            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시작 가능 (시민 ${citizenCount}명 자동 배정)</span>`; startBtn.disabled = false; }
         }
 
-        // Host Engine
         document.getElementById('start-game-btn').addEventListener('click', async () => {
             if (!isHost || document.getElementById('start-game-btn').disabled) return;
             
@@ -805,7 +791,6 @@
             await sysChat("방장이 게임을 초기화했습니다."); await changePhase('lobby', 0, "새 게임을 준비합니다.");
         });
 
-        // Skip Action logic
         document.getElementById('host-quick-skip-btn').addEventListener('click', () => { 
             if (isHost && !isTransitioning) executePhaseTransition(); 
         });
@@ -814,14 +799,12 @@
             if (hostLoopInterval) clearInterval(hostLoopInterval);
             hostLoopInterval = setInterval(() => {
                 if (gameState.phase === 'lobby' || gameState.phase === 'game_over') return;
-                // Avoid double trigger if transition is already running
                 if (Date.now() >= gameState.phaseEndsAt && !isTransitioning) {
                     executePhaseTransition();
                 }
             }, 1000);
         }
 
-        // Extremely robust phase transition lock to fix skipping bugs
         async function executePhaseTransition() {
             if (isTransitioning) return;
             isTransitioning = true;
@@ -834,12 +817,7 @@
                 else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n특수직업들은 조용히 대상을 지목하세요."); } 
                 else if (p === 'night_action') { await calculateNightActions(); } 
                 else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 180, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론을 이어가세요."); }
-            } catch (err) {
-                console.error("Phase Transition Error: ", err);
-            } finally {
-                // Keep the lock active for 2 seconds to absolutely prevent double-skips
-                setTimeout(() => { isTransitioning = false; }, 2000);
-            }
+            } catch (err) { console.error(err); } finally { setTimeout(() => { isTransitioning = false; }, 2000); }
         }
 
         async function changePhase(newPhase, durationSec, logs) {
@@ -864,13 +842,8 @@
             if (toDie && !isTie) {
                 const targetPlayer = playersList.find(p => p.uid === toDie);
                 await updateDoc(doc(PLAYERS_COL, toDie), { isAlive: false });
-                
-                // Rule: Reveal identity on Day Vote Death
-                if (targetPlayer.role === '군인') {
-                    await changePhase('day_soldier', 15, `투표 결과: [${targetPlayer.name}] 처형 확정.\n하지만 그는 [군인]이었습니다! 죽기 직전 최후의 발악을 시도합니다.`);
-                } else {
-                    await changePhase('day_result', 10, `투표 결과: [${targetPlayer.name}]님이 형장의 이슬로 사라졌습니다.\n그의 정체는 [ ${targetPlayer.role} ] (이)었습니다.`);
-                }
+                if (targetPlayer.role === '군인') await changePhase('day_soldier', 15, `투표 결과: [${targetPlayer.name}] 처형 확정.\n하지만 그는 [군인]이었습니다! 죽기 직전 최후의 발악을 시도합니다.`);
+                else await changePhase('day_result', 10, `투표 결과: [${targetPlayer.name}]님이 형장의 이슬로 사라졌습니다.\n그의 정체는 [ ${targetPlayer.role} ] (이)었습니다.`);
             } else await changePhase('day_result', 10, "투표가 동률이거나 기권이 많아 아무도 처형되지 않았습니다.");
         }
 
@@ -893,23 +866,16 @@
                 if (d.role === '택시 기사') taxi = d.target;
             });
 
-            // 마피아 투표 취합 및 동점자 랜덤 처리
             let mTarget = null;
             if (mafia.length > 0) {
                 const voteCounts = {};
                 mafia.forEach(t => voteCounts[t] = (voteCounts[t] || 0) + 1);
                 
-                let maxVotes = 0;
-                let tiedTargets = [];
+                let maxVotes = 0; let tiedTargets = [];
                 for (const [target, count] of Object.entries(voteCounts)) {
-                    if (count > maxVotes) {
-                        maxVotes = count;
-                        tiedTargets = [target];
-                    } else if (count === maxVotes) {
-                        tiedTargets.push(target);
-                    }
+                    if (count > maxVotes) { maxVotes = count; tiedTargets = [target]; } 
+                    else if (count === maxVotes) { tiedTargets.push(target); }
                 }
-                // 동점일 경우 묶인 타겟 중 하나를 무작위 선택
                 mTarget = tiedTargets[Math.floor(Math.random() * tiedTargets.length)];
             }
 
@@ -926,7 +892,6 @@
                 else if (mTarget === doctor) { logs = "밤사이 총성이 울렸으나, 의사의 기적적인 응급처치로 피해자가 살아났습니다."; } 
                 else {
                     deaths.push(mTarget); const dp = playersList.find(p => p.uid === mTarget);
-                    // Rule: Do NOT reveal identity on Night Death
                     logs = `🩸 밤사이 [${dp ? dp.name : '누군가'}]님이 마피아의 손에 싸늘한 주검으로 발견되었습니다.`;
                 }
             }
@@ -943,7 +908,7 @@
                 if (d.phase === 'night_action' && d.target !== 'SKIP') { if (d.uid === myUid) myTarget = d.target; if (d.role === '택시 기사') taxiTarget = d.target; }
             });
 
-            const box = document.getElementById('private-result-box'); const txt = document.getElementById('private-result-text'); box.classList.remove('hidden');
+            const box = document.getElementById('private-result-box'); const txt = document.getElementById('private-result-text'); box.style.display = 'block';
             if (!myTarget) { txt.textContent = "수사를 진행하지 않았습니다."; return; }
             if (myTarget === taxiTarget) { txt.innerHTML = "<span class='text-yellow-400'>대상이 택시에 탑승하여 행방을 놓쳤습니다 (수사 실패).</span>"; return; }
 
