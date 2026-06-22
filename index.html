@@ -30,12 +30,13 @@
         .btn-press { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
         .btn-press:active:not(:disabled) { transform: scale(0.96); }
         
-        .player-list-item { transition: all 0.2s ease; border: 2px solid transparent; }
-        .player-list-item.dead { opacity: 0.4; filter: grayscale(100%); position: relative; }
-        .player-list-item.dead::after { content: ''; position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: #ef4444; transform: translateY(-50%); box-shadow: 0 0 8px #ef4444; }
+        .player-item { transition: all 0.3s ease; }
+        .player-item.dead { opacity: 0.4; filter: grayscale(100%); position: relative; }
+        .player-item.dead::after { content: ''; position: absolute; top: 50%; left: 10%; right: 10%; height: 2px; background: #ef4444; transform: translateY(-50%); box-shadow: 0 0 8px #ef4444; }
         
-        .action-card { transition: all 0.2s ease; cursor: pointer; }
-        .action-card:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(30, 41, 59, 0.9); }
+        .selectable { cursor: pointer; border: 2px solid transparent; }
+        .selectable:hover { border-color: rgba(59, 130, 246, 0.5); background: rgba(30, 41, 59, 0.8); }
+        .selectable.selected { border-color: #3b82f6; background: rgba(59, 130, 246, 0.2); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
         
         /* Dynamic Game Backgrounds */
         #game-board-bg { transition: background 1.5s ease; background-size: 200% 200%; }
@@ -57,9 +58,10 @@
         
         .no-select { user-select: none; -webkit-user-select: none; }
         
-        /* Target Animation */
-        @keyframes targetPulse { 0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } }
-        .target-selected { animation: targetPulse 1.5s infinite; }
+        /* Tab Transitions */
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="h-screen w-screen flex flex-col bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]">
@@ -70,8 +72,8 @@
     </div>
 
     <!-- Auth / Login Screen -->
-    <div id="auth-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm overflow-y-auto">
-        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden border border-gray-600/30 my-8">
+    <div id="auth-screen" class="absolute inset-0 z-50 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm">
+        <div class="glass-panel p-8 md:p-10 rounded-3xl shadow-2xl w-full max-w-md mx-4 relative overflow-hidden border border-gray-600/30">
             <!-- Decorative blobs -->
             <div class="absolute -top-20 -right-20 w-40 h-40 bg-blue-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
             <div class="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 pointer-events-none"></div>
@@ -87,41 +89,39 @@
                     <i class="fas fa-circle-notch fa-spin"></i> 서버 연결 중...
                 </div>
 
-                <div id="auth-forms" class="hidden space-y-8">
-                    
-                    <!-- Create Room Section (Highlighted) -->
-                    <div class="bg-gray-800/60 p-5 rounded-2xl border border-purple-500/30 shadow-lg">
-                        <div class="text-left mb-3 flex items-center gap-2">
-                            <i class="fas fa-crown text-purple-400"></i>
-                            <span class="text-white font-bold tracking-wide">방장으로 새로 시작</span>
+                <div id="auth-forms" class="hidden">
+                    <!-- Tabs -->
+                    <div class="flex p-1 bg-gray-800/80 rounded-xl mb-6 border border-gray-700/50">
+                        <button id="tab-join" class="flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md transition-all">방 참가하기</button>
+                        <button id="tab-create" class="flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all">새 방 만들기</button>
+                    </div>
+
+                    <!-- Join Room Tab -->
+                    <div id="content-join" class="tab-content active space-y-4">
+                        <div class="relative">
+                            <i class="fas fa-hashtag absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="number" id="join-room-input" placeholder="입장할 방 번호 (숫자 5자리)" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-white font-mono text-lg" maxlength="5">
                         </div>
-                        <input type="text" id="create-name-input" placeholder="내 닉네임 입력" class="w-full px-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-purple-500 text-white font-medium mb-3 transition-colors text-center">
-                        <button id="btn-submit-create" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-lg shadow-md btn-press">
-                            새 방 만들기
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="text" id="join-name-input" placeholder="사용할 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all text-white font-medium">
+                        </div>
+                        <button id="btn-submit-join" class="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(79,70,229,0.4)] btn-press flex items-center justify-center gap-2">
+                            <i class="fas fa-sign-in-alt"></i> 게임 참가
                         </button>
                     </div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="h-px bg-gray-700 flex-1"></div>
-                        <span class="text-gray-500 font-bold text-sm">또는</span>
-                        <div class="h-px bg-gray-700 flex-1"></div>
-                    </div>
-
-                    <!-- Join Room Section -->
-                    <div class="bg-gray-800/40 p-5 rounded-2xl border border-blue-500/20">
-                        <div class="text-left mb-3 flex items-center gap-2">
-                            <i class="fas fa-users text-blue-400"></i>
-                            <span class="text-gray-200 font-bold tracking-wide">친구의 방에 참가</span>
+                    <!-- Create Room Tab -->
+                    <div id="content-create" class="tab-content space-y-4">
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                            <input type="text" id="create-name-input" placeholder="방장 닉네임" class="w-full pl-10 pr-4 py-3 rounded-xl bg-gray-900/50 border border-gray-600 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all text-white font-medium">
                         </div>
-                        <div class="space-y-3 mb-3">
-                            <input type="text" id="join-room-input" placeholder="초대 코드 (예: A4X9)" class="w-full px-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-blue-500 text-white font-mono uppercase text-center tracking-widest text-lg transition-colors" maxlength="6">
-                            <input type="text" id="join-name-input" placeholder="내 닉네임 입력" class="w-full px-4 py-3 rounded-xl bg-gray-900/80 border border-gray-600 focus:outline-none focus:border-blue-500 text-white font-medium text-center transition-colors">
-                        </div>
-                        <button id="btn-submit-join" class="w-full py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-lg shadow-md btn-press">
-                            게임 참가
+                        <button id="btn-submit-create" class="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-bold text-lg shadow-[0_0_15px_rgba(168,85,247,0.4)] btn-press flex items-center justify-center gap-2">
+                            <i class="fas fa-plus-circle"></i> 방 만들기
                         </button>
+                        <p class="text-xs text-gray-400 mt-2">입장하기 쉬운 5자리 숫자 코드가 발급됩니다.</p>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -134,7 +134,7 @@
         <div class="w-full md:w-[320px] h-1/3 md:h-full border-b md:border-r border-gray-700/50 flex flex-col glass-panel z-20 shrink-0">
             <div class="p-5 border-b border-gray-700/50 bg-gray-800/30">
                 <div class="flex justify-between items-center mb-4">
-                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-lg border border-gray-700 flex items-center gap-2 shadow-inner" title="이 코드를 친구들에게 공유하세요">
+                    <div class="bg-gray-900/80 px-3 py-1.5 rounded-lg border border-gray-700 flex items-center gap-2 shadow-inner">
                         <i class="fas fa-hashtag text-blue-400"></i>
                         <span id="room-display" class="font-mono font-bold tracking-widest text-lg text-white">ROOM</span>
                     </div>
@@ -155,12 +155,8 @@
                 </div>
             </div>
             
-            <div class="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider flex justify-between items-center bg-gray-900/30">
-                <span>참가자 목록</span>
-                <span id="list-instruction" class="text-[10px] text-blue-400 hidden animate-pulse">대상을 터치하세요!</span>
-            </div>
-            
-            <div id="player-list" class="flex-1 overflow-y-auto px-3 py-2 space-y-1 bg-gray-900/20">
+            <div class="px-4 py-2 text-xs font-bold text-gray-500 uppercase tracking-wider">참가자 목록</div>
+            <div id="player-list" class="flex-1 overflow-y-auto px-3 pb-4 space-y-2">
                 <!-- Players injected here -->
             </div>
         </div>
@@ -204,33 +200,33 @@
                     
                     <!-- Host Settings -->
                     <div id="host-settings-area" class="mb-6 hidden">
-                        <div class="bg-gray-900/80 rounded-2xl p-5 border-2 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)]">
-                            <div class="text-sm text-purple-400 mb-4 font-black flex items-center gap-2 justify-center bg-purple-900/30 py-2 rounded-lg">
-                                <i class="fas fa-sliders-h"></i> 방장 게임 설정
+                        <div class="bg-gray-900/50 rounded-2xl p-5 border border-gray-700/50">
+                            <div class="text-sm text-blue-400 mb-4 font-bold flex items-center gap-2">
+                                <i class="fas fa-sliders-h"></i> 직업 설정 (방장 전용)
                             </div>
                             <div class="grid grid-cols-2 gap-3">
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-user-secret text-red-400 w-5"></i> 마피아</label>
                                     <input type="number" id="setting-mafia" value="2" min="1" max="5" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-red-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-user-nurse text-green-400 w-5"></i> 의사</label>
                                     <input type="number" id="setting-doctor" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-green-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-shield-alt text-blue-400 w-5"></i> 경찰</label>
                                     <input type="number" id="setting-police" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-blue-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-taxi text-yellow-400 w-5"></i> 택시</label>
                                     <input type="number" id="setting-taxi" value="1" min="0" max="2" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-yellow-400">
                                 </div>
-                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl border border-gray-700 col-span-2">
+                                <div class="flex justify-between items-center bg-black/40 px-3 py-2 rounded-xl col-span-2">
                                     <label class="text-sm font-bold text-gray-300"><i class="fas fa-medal text-purple-400 w-5"></i> 군인</label>
                                     <input type="number" id="setting-soldier" value="1" min="0" max="3" class="w-14 bg-gray-700 text-center rounded-lg text-white font-mono py-1 focus:outline-none focus:ring-1 focus:ring-purple-400">
                                 </div>
                             </div>
-                            <div id="role-calc-info" class="text-center text-sm font-bold mt-4 px-2 py-2 rounded-lg bg-gray-800 border border-gray-600"></div>
+                            <div id="role-calc-info" class="text-center text-sm font-bold mt-4 px-2 py-2 rounded-lg bg-gray-800/80 border border-gray-700"></div>
                         </div>
                     </div>
 
@@ -245,18 +241,18 @@
                     <button id="start-game-btn" class="w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(16,185,129,0.5)] btn-press hidden disabled:opacity-50 disabled:cursor-not-allowed">게임 시작</button>
                 </div>
 
-                <!-- Voting / Action Panel (Grid UI) -->
-                <div id="action-panel" class="w-full max-w-2xl glass-panel p-8 rounded-3xl hidden flex flex-col h-full max-h-[95%] shadow-2xl">
-                    <div class="text-center mb-6 shrink-0">
+                <!-- Voting / Action Panel -->
+                <div id="action-panel" class="w-full max-w-lg glass-panel p-8 rounded-3xl hidden flex flex-col h-full max-h-[90%] shadow-2xl">
+                    <div class="text-center mb-6">
                         <div id="action-icon" class="inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2">
                             <i class="fas fa-crosshairs text-3xl"></i>
                         </div>
                         <h3 id="action-title" class="text-2xl font-black text-white">행동 선택</h3>
-                        <p id="action-desc" class="text-gray-400 font-medium mt-1">대상을 신중하게 선택하세요. (터치)</p>
+                        <p id="action-desc" class="text-gray-400 font-medium mt-1">대상을 신중하게 선택하세요.</p>
                     </div>
                     
-                    <div id="action-target-grid" class="flex-1 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 p-1">
-                        <!-- Selectable Cards Injected Here -->
+                    <div id="action-target-list" class="flex-1 overflow-y-auto space-y-3 mb-6 pr-2">
+                        <!-- Selectables -->
                     </div>
 
                     <div class="flex gap-3 shrink-0">
@@ -273,12 +269,15 @@
                         <h2 id="result-title" class="text-3xl font-black text-white mb-4 tracking-tight">결과 발표</h2>
                         <p id="result-desc" class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10">결과를 기다리는 중입니다.</p>
                         
+                        <!-- Night Status Board (Visible to everyone) -->
+                        <div id="dynamic-status-box" class="mt-4 flex justify-center"></div>
+
                         <div id="private-result-box" class="mt-6 p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-yellow-500/30 hidden text-left shadow-lg">
                             <div class="text-xs text-yellow-400 font-black mb-2 tracking-wider flex items-center gap-2"><i class="fas fa-lock text-sm"></i> SECRET REPORT</div>
                             <div id="private-result-text" class="text-base text-white font-medium"></div>
                         </div>
 
-                        <!-- Host Controls (Game Over) -->
+                        <!-- Host Controls -->
                         <div class="mt-8 flex justify-center gap-3">
                             <button id="host-reset-btn" class="px-6 py-2.5 bg-red-600 hover:bg-red-500 rounded-xl text-white font-bold hidden shadow-lg shadow-red-500/30 btn-press"><i class="fas fa-undo mr-2"></i>대기실 복귀</button>
                         </div>
@@ -295,7 +294,7 @@
             </div>
             
             <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-900/40">
-                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">!투표 [닉네임] / !능력 [닉네임] 명령어도 사용 가능합니다.</div>
+                <div class="text-center text-xs text-gray-500 font-medium my-4 bg-black/20 py-2 rounded-lg">채팅 내역이 보호되고 있습니다.</div>
             </div>
 
             <!-- Chat Overlay -->
@@ -350,19 +349,15 @@
         
         let gameState = { phase: 'lobby', phaseEndsAt: 0, logs: "", hostUid: "" };
         let playersList = [];
+        let currentActions = []; // 밤 페이즈 현황용
+        
         let hostLoopInterval = null;
         let timerInterval = null;
         let hasJoined = false;
+        let isTransitioning = false; // 중복 스킵/페이즈 넘김 방지용 락 플래그
 
         let chatTimestamps = [];
         let isSpamLocked = false;
-        
-        // Target Logic State
-        let currentActionFilter = null;
-        let isActionPhase = false;
-        let selectedTarget = null;
-        let previousPhase = 'lobby';
-        let isTransitioning = false; // 중복 스킵 방지용 락 플래그
 
         // Toast Helper
         function showToast(msg) {
@@ -372,14 +367,32 @@
             setTimeout(() => toast.classList.remove('toast-show'), 3000);
         }
 
+        // Generate Random Code (5 chars numbers only)
         function generateRoomCode() {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let result = '';
-            for (let i = 0; i < 4; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
-            return result;
+            return Math.floor(10000 + Math.random() * 90000).toString();
         }
 
-        // Init Auth with Tab Tracking for local testing
+        // Tab Switching Logic
+        const tabJoin = document.getElementById('tab-join');
+        const tabCreate = document.getElementById('tab-create');
+        const contentJoin = document.getElementById('content-join');
+        const contentCreate = document.getElementById('content-create');
+
+        function switchTab(isJoin) {
+            if (isJoin) {
+                tabJoin.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md transition-all";
+                tabCreate.className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
+                contentJoin.classList.add('active'); contentCreate.classList.remove('active');
+            } else {
+                tabCreate.className = "flex-1 py-2 rounded-lg text-sm font-bold bg-purple-600 text-white shadow-md transition-all";
+                tabJoin.className = "flex-1 py-2 rounded-lg text-sm font-bold text-gray-400 hover:text-white transition-all";
+                contentCreate.classList.add('active'); contentJoin.classList.remove('active');
+            }
+        }
+        tabJoin.onclick = () => switchTab(true);
+        tabCreate.onclick = () => switchTab(false);
+
+        // Init Auth
         async function init() {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -399,7 +412,7 @@
         }
 
         function setupFirebasePaths(code) {
-            roomCode = code.toUpperCase();
+            roomCode = code;
             document.getElementById('room-display').textContent = roomCode;
             ROOM_DOC = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', roomCode);
             PLAYERS_COL = collection(db, 'artifacts', appId, 'public', 'data', `room_${roomCode}_players`);
@@ -415,7 +428,6 @@
             startClientTimer();
         }
 
-        // JOIN Button
         document.getElementById('btn-submit-join').addEventListener('click', async () => {
             const rCode = document.getElementById('join-room-input').value.trim();
             const nName = document.getElementById('join-name-input').value.trim();
@@ -423,14 +435,13 @@
 
             setupFirebasePaths(rCode);
             const roomSnap = await getDoc(ROOM_DOC);
-            if (!roomSnap.exists()) return showToast("존재하지 않는 방입니다. 코드를 확인해주세요.");
+            if (!roomSnap.exists()) return showToast("존재하지 않는 방입니다. 방 번호를 확인해주세요.");
 
             myName = nName;
             await setDoc(doc(PLAYERS_COL, myUid), { uid: myUid, name: myName, role: "시민", isAlive: true, isReady: false, joinedAt: Date.now() });
             enterMainScreen();
         });
 
-        // CREATE Button
         document.getElementById('btn-submit-create').addEventListener('click', async () => {
             const nName = document.getElementById('create-name-input').value.trim();
             if (!nName) return showToast("사용할 방장 닉네임을 입력해주세요.");
@@ -456,17 +467,14 @@
                 if (isHost && !hostLoopInterval) startHostLoop();
                 if (!isHost && hostLoopInterval) { clearInterval(hostLoopInterval); hostLoopInterval = null; }
 
-                // Host UI Toggle (Explicit display assignment to ensure it shows)
-                document.getElementById('host-settings-area').style.display = isHost ? 'block' : 'none';
+                document.getElementById('host-settings-area').classList.toggle('hidden', !isHost);
                 document.getElementById('start-game-btn').classList.toggle('hidden', !isHost);
-                document.getElementById('host-quick-skip-btn').classList.toggle('hidden', !isHost);
-                
-                // Non-Host UI
                 document.getElementById('player-ready-area').classList.toggle('hidden', isHost);
                 document.getElementById('ready-btn').classList.toggle('hidden', isHost);
+                document.getElementById('host-quick-skip-btn').classList.toggle('hidden', !isHost);
                 
                 ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).disabled = !isHost; });
-                if(isHost) validateHostSettings(); 
+                validateHostSettings(); 
                 updatePhaseUI();
             });
 
@@ -494,6 +502,16 @@
                 document.getElementById('player-count').textContent = `${playersList.length}/18`;
                 renderPlayerList();
                 if(isHost) validateHostSettings();
+                
+                // Refresh night status board if players change
+                if (gameState.phase === 'night_action') renderNightStatus();
+            });
+
+            // Listen to Actions for Live Progress Board
+            onSnapshot(ACTIONS_COL, (snapshot) => {
+                currentActions = [];
+                snapshot.forEach(doc => currentActions.push(doc.data()));
+                if (gameState.phase === 'night_action') renderNightStatus();
             });
 
             onSnapshot(CHAT_COL, (snapshot) => {
@@ -528,78 +546,30 @@
             });
         }
 
-        // Global Target Selection Logic (Works for both Left List and Center Grid)
-        window.selectTarget = function(uid) {
-            selectedTarget = uid;
-            
-            // Sync Left List Highlights
-            document.querySelectorAll('.player-list-item').forEach(el => {
-                if (el.dataset.uid === uid) {
-                    el.classList.add('border-blue-500', 'bg-blue-900/60');
-                    el.classList.remove('border-transparent', 'bg-gray-800/40', 'bg-gray-800/20');
-                } else {
-                    el.classList.remove('border-blue-500', 'bg-blue-900/60');
-                    if(!el.classList.contains('dead')) el.classList.add('border-transparent', 'bg-gray-800/40');
-                }
-            });
-
-            // Sync Center Grid Highlights
-            document.querySelectorAll('.action-card').forEach(el => {
-                if (el.dataset.uid === uid) {
-                    el.classList.add('border-blue-500', 'bg-blue-900/60', 'scale-[1.02]', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
-                    el.classList.remove('border-gray-600', 'bg-gray-800/80');
-                } else {
-                    el.classList.remove('border-blue-500', 'bg-blue-900/60', 'scale-[1.02]', 'shadow-[0_0_15px_rgba(59,130,246,0.5)]');
-                    el.classList.add('border-gray-600', 'bg-gray-800/80');
-                }
-            });
-
-            const submitBtn = document.getElementById('action-submit-btn');
-            submitBtn.disabled = false;
-            submitBtn.classList.add('target-selected');
-        };
-
         function renderPlayerList() {
             const listEl = document.getElementById('player-list');
             listEl.innerHTML = '';
             
-            // Check if user is allowed to target right now
-            const canSelectAny = isActionPhase && !amIDead && currentActionFilter !== null;
-            document.getElementById('list-instruction').style.display = canSelectAny ? 'block' : 'none';
-            
             playersList.forEach(p => {
                 const isMe = p.uid === myUid;
                 const div = document.createElement('div');
-                div.className = `player-list-item p-3 rounded-xl flex justify-between items-center shadow-sm mb-1 ${!p.isAlive ? 'dead bg-gray-900/50' : 'bg-gray-800/40'}`;
-                div.dataset.uid = p.uid;
+                div.className = `player-item p-3 rounded-xl border border-gray-700/50 flex justify-between items-center shadow-sm mb-2 ${!p.isAlive ? 'dead bg-gray-900/50' : 'bg-gray-800/40'}`;
                 
-                let nameHtml = `<div class="flex items-center gap-2"><div class="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] text-gray-400"><i class="fas fa-user"></i></div><span class="font-bold text-sm ${isMe ? 'text-blue-400' : 'text-gray-200'}">${p.name}</span></div>`;
+                let nameHtml = `<span class="font-bold text-sm ${isMe ? 'text-blue-400' : 'text-gray-200'}">${p.name}</span>`;
                 
                 let rightHtml = '';
                 if (!p.isAlive && gameState.phase !== 'lobby') {
                     rightHtml = `<i class="fas fa-skull text-red-500" title="사망"></i>`;
                 } else if (gameState.phase === 'lobby') {
-                    if (p.uid === gameState.hostUid) rightHtml = `<i class="fas fa-crown text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]" title="방장"></i>`;
-                    else {
+                    if (p.uid === gameState.hostUid) {
+                        rightHtml = `<i class="fas fa-crown text-yellow-400 drop-shadow-[0_0_5px_rgba(250,204,21,0.5)]" title="방장"></i>`;
+                    } else {
                         rightHtml = p.isReady ? `<i class="fas fa-check-circle text-green-500" title="준비 완료"></i>` : `<i class="fas fa-spinner fa-spin text-gray-500" title="대기 중"></i>`;
                         if (isHost && !isMe) rightHtml += ` <button class="ml-2 text-red-400 hover:text-red-300 kick-btn p-1 bg-red-900/30 rounded" data-uid="${p.uid}"><i class="fas fa-sign-out-alt"></i></button>`;
                     }
-                }
+                } else { rightHtml = `<i class="fas fa-user-shield text-gray-600"></i>`; }
 
-                div.innerHTML = `${nameHtml}<div class="flex items-center">${rightHtml}</div>`;
-                
-                // Add Targeting Interaction to Left List
-                if (canSelectAny && currentActionFilter(p)) {
-                    div.classList.add('cursor-pointer', 'hover:bg-blue-900/40');
-                    div.onclick = () => window.selectTarget(p.uid);
-                }
-
-                // Restore highlight if it was already selected
-                if (selectedTarget === p.uid) {
-                    div.classList.add('border-blue-500', 'bg-blue-900/60');
-                    div.classList.remove('border-transparent', 'bg-gray-800/40');
-                }
-
+                div.innerHTML = `<div>${nameHtml}</div><div class="flex items-center">${rightHtml}</div>`;
                 listEl.appendChild(div);
             });
 
@@ -611,7 +581,7 @@
             });
         }
 
-        // Role Reveal Click/Touch Events (3초간 보여주기 토글 방식으로 변경)
+        // Role Reveal Click/Touch Events (3초간 보여주기 토글)
         const roleCover = document.getElementById('role-cover');
         let roleViewTimer = null;
         const toggleRoleView = (e) => { 
@@ -629,19 +599,6 @@
         const elResultPanel = document.getElementById('result-panel');
 
         function updatePhaseUI() {
-            isActionPhase = ['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase);
-            
-            // 왼쪽 패널 직업 공개 애니메이션 (최초 1회)
-            if (previousPhase === 'lobby' && gameState.phase === 'day_discuss') {
-                showToast(`게임 시작! 당신의 직업은 [ ${myRole} ] 입니다.`);
-                const roleCover = document.getElementById('role-cover');
-                if (roleCover) {
-                    roleCover.style.opacity = '0';
-                    setTimeout(() => { roleCover.style.opacity = '1'; }, 5000);
-                }
-            }
-            previousPhase = gameState.phase;
-
             const phaseInfo = {
                 'lobby': { t: '대기실', i: 'fa-coffee', bg: 'bg-lobby', vIcon: 'fa-shield-alt text-white opacity-[0.03]' },
                 'day_discuss': { t: '낮 (토론 시간)', i: 'fa-sun text-yellow-300', bg: 'bg-day', vIcon: 'fa-sun text-yellow-200 opacity-[0.08] animate-pulse' },
@@ -665,6 +622,7 @@
 
             elLobbyPanel.classList.add('hidden'); elActionPanel.classList.add('hidden'); elResultPanel.classList.add('hidden');
             document.getElementById('private-result-box').classList.add('hidden');
+            document.getElementById('dynamic-status-box').innerHTML = ''; // Reset night status board
             document.getElementById('host-reset-btn').classList.add('hidden');
 
             // Chat Control
@@ -685,15 +643,11 @@
                 elLobbyPanel.classList.remove('hidden');
                 const btn = document.getElementById('ready-btn');
                 btn.textContent = isReady ? "준비 완료 (취소하려면 클릭)" : "준비하기";
-                btn.className = isReady ? "w-full py-4 bg-gray-600 hover:bg-gray-500 rounded-2xl font-bold transition text-white text-xl shadow-inner btn-press" : "w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-2xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
-                currentActionFilter = null;
-            } else if (isActionPhase) {
+                btn.className = isReady ? "w-full py-4 bg-gray-600 hover:bg-gray-500 rounded-xl font-bold transition text-white text-xl shadow-inner btn-press" : "w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-xl font-black text-white transition text-xl shadow-[0_10px_20px_-10px_rgba(79,70,229,0.5)] btn-press";
+            } else if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
                 setupActionPanel();
             } else if (gameState.phase === 'day_discuss') {
-                currentActionFilter = null;
-                document.getElementById('result-title').textContent = "낮 토론 시간";
-                
-                // 낮 토론 페이즈: 무조건 중앙 화면에 자신의 직업을 큼직하게 띄워놓음
+                // 낮 토론 페이즈: 화면 중앙에 대문짝만하게 직업 보여주기
                 let iconClass = "fa-sun"; let colorClass = "text-yellow-400";
                 if (myRole === '마피아') { iconClass = "fa-user-secret"; colorClass = "text-red-500"; }
                 else if (myRole === '의사') { iconClass = "fa-user-nurse"; colorClass = "text-green-400"; }
@@ -702,75 +656,101 @@
                 else if (myRole === '군인') { iconClass = "fa-medal"; colorClass = "text-purple-400"; }
                 
                 showResultPanel(
-                    '<div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-600/50 inline-block mb-6 shadow-2xl transform hover:scale-105 transition-transform cursor-default mt-2">' +
+                    '<div class="bg-gray-900/80 p-6 rounded-3xl border border-gray-600/50 inline-block mb-6 shadow-2xl">' +
                         '<span class="text-sm text-gray-400 font-bold tracking-widest block mb-2"><i class="fas fa-id-card mr-2"></i>당신의 배정 직업</span>' +
                         '<span class="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500 drop-shadow-md tracking-tight">' + myRole + '</span>' +
                     '</div>' +
-                    '<div class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10 shadow-inner">' +
+                    '<div class="text-gray-200 text-lg leading-relaxed font-medium bg-black/40 p-4 rounded-2xl border border-white/10">' +
                         '<i class="fas fa-comment-dots text-blue-400 mr-2"></i> ' + gameState.logs.replace(/\n/g, '<br>') +
                     '</div>',
                     iconClass, colorClass
                 );
             } else {
-                currentActionFilter = null;
-                document.getElementById('result-title').textContent = "결과 발표";
                 showResultPanel();
                 if (gameState.phase === 'game_over' && isHost) document.getElementById('host-reset-btn').classList.remove('hidden');
                 if (gameState.phase === 'night_result' && myRole === '경찰') renderPoliceResult();
             }
-            
-            // Re-render list to apply interaction rules
-            renderPlayerList();
         }
 
         function setupActionPanel() {
             const t = document.getElementById('action-title');
             const d = document.getElementById('action-desc');
             const icon = document.getElementById('action-icon');
-            let allowed = false; currentActionFilter = p => p.isAlive && p.uid !== myUid;
+            let allowed = false; let filter = p => p.isAlive && p.uid !== myUid;
 
             if (gameState.phase === 'day_vote' && !amIDead) {
-                t.textContent = "처형 투표"; d.textContent = "가장 의심되는 대상을 선택하세요."; icon.innerHTML = '<i class="fas fa-gavel text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-2";
-                allowed = true; currentActionFilter = p => p.isAlive;
+                t.textContent = "투표 시간"; d.textContent = "처형할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-gavel text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-2";
+                allowed = true; filter = p => p.isAlive;
             } else if (gameState.phase === 'night_action' && !amIDead) {
-                if (myRole === '마피아') { t.textContent = "암살 대상 선택"; d.textContent = "제거할 대상을 지목하세요."; icon.innerHTML = '<i class="fas fa-crosshairs text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2"; allowed = true; currentActionFilter = p => p.isAlive && p.role !== '마피아'; }
-                else if (myRole === '의사') { t.textContent = "치료 대상 선택"; d.textContent = "살릴 사람을 고르세요 (자신 포함)."; icon.innerHTML = '<i class="fas fa-medkit text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-green-500/20 text-green-400 mb-2"; allowed = true; currentActionFilter = p => p.isAlive; }
-                else if (myRole === '경찰') { t.textContent = "수사 대상 선택"; d.textContent = "정체를 조사할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-search text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-blue-500/20 text-blue-400 mb-2"; allowed = true; }
-                else if (myRole === '택시 기사') { t.textContent = "탑승자 선택"; d.textContent = "택시에 태워 보호할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-taxi text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-yellow-500/20 text-yellow-400 mb-2"; allowed = true; currentActionFilter = p => p.isAlive; }
+                if (myRole === '마피아') { t.textContent = "암살 대상 선택"; d.textContent = "제거할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-crosshairs text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-red-500/20 text-red-400 mb-2"; allowed = true; filter = p => p.isAlive && p.role !== '마피아'; }
+                else if (myRole === '의사') { t.textContent = "치료 대상 선택"; d.textContent = "살릴 사람을 고르세요 (자힐 가능)."; icon.innerHTML = '<i class="fas fa-medkit text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-green-500/20 text-green-400 mb-2"; allowed = true; filter = p => p.isAlive; }
+                else if (myRole === '경찰') { t.textContent = "수사 대상 선택"; d.textContent = "마피아 여부를 조사할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-search text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-blue-500/20 text-blue-400 mb-2"; allowed = true; }
+                else if (myRole === '택시 기사') { t.textContent = "탑승자 선택"; d.textContent = "택시에 태워 무적 보호할 사람을 고르세요."; icon.innerHTML = '<i class="fas fa-taxi text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-yellow-500/20 text-yellow-400 mb-2"; allowed = true; filter = p => p.isAlive; }
             } else if (gameState.phase === 'day_soldier' && amIDead && myRole === '군인') {
                 t.textContent = "최후의 폭로"; d.textContent = "물귀신으로 정체를 밝힐 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-bomb text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-purple-500/20 text-purple-400 mb-2 animate-bounce"; allowed = true;
             }
 
-            if (!allowed) { showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업이 행동 중입니다...", "fa-bed", "text-blue-300"); currentActionFilter = null; return; }
+            if (!allowed) { 
+                showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-blue-300"); 
+                // 밤에는 상황판 렌더링
+                if(gameState.phase === 'night_action') renderNightStatus();
+                return; 
+            }
 
             elActionPanel.classList.remove('hidden');
-            const targetGrid = document.getElementById('action-target-grid');
-            targetGrid.innerHTML = '';
+            const targetList = document.getElementById('action-target-list');
+            targetList.innerHTML = '';
             selectedTarget = null;
-            
-            const submitBtn = document.getElementById('action-submit-btn');
-            submitBtn.disabled = true; submitBtn.classList.remove('target-selected');
+            document.getElementById('action-submit-btn').disabled = true;
 
-            // Render Center Grid Cards
-            playersList.filter(currentActionFilter).forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'action-card flex flex-col items-center justify-center p-4 rounded-xl bg-gray-800/80 border-2 border-gray-600 shadow-md';
-                card.dataset.uid = p.uid;
-                card.innerHTML = `<div class="w-12 h-12 rounded-full bg-gray-700 flex items-center justify-center text-gray-400 text-xl mb-2"><i class="fas fa-user"></i></div><div class="font-bold text-white text-sm truncate w-full text-center">${p.name}</div>`;
-                card.onclick = () => window.selectTarget(p.uid);
-                targetGrid.appendChild(card);
+            playersList.filter(filter).forEach(p => {
+                const btn = document.createElement('div');
+                btn.className = 'selectable p-4 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-lg text-center text-white shadow-sm transition-all';
+                btn.textContent = p.name;
+                btn.onclick = () => {
+                    Array.from(targetList.children).forEach(c => c.classList.remove('selected'));
+                    selectedTarget = p.uid;
+                    btn.classList.add('selected');
+                    document.getElementById('action-submit-btn').disabled = false;
+                };
+                targetList.appendChild(btn);
             });
+        }
+
+        // Night Action Progress Board (Visible to all in center)
+        function renderNightStatus() {
+            const box = document.getElementById('dynamic-status-box');
+            if (gameState.phase !== 'night_action') { box.innerHTML = ''; return; }
+
+            const aliveRoles = new Set(playersList.filter(p => p.isAlive && p.role !== '시민').map(p => p.role));
+            let html = '<div class="inline-block bg-gray-900/80 p-5 rounded-2xl border border-blue-500/30 text-left min-w-[240px] shadow-lg"><div class="text-sm text-blue-400 font-black mb-3 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3">';
+
+            ['마피아', '의사', '경찰', '택시 기사'].forEach(r => {
+                if (aliveRoles.has(r)) {
+                    const isDone = currentActions.some(a => a.role === r);
+                    const icon = isDone ? '<i class="fas fa-check-circle text-green-400 text-lg"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
+                    const color = isDone ? 'text-gray-200' : 'text-gray-500';
+                    const textStatus = isDone ? '선택 완료' : '고민 중...';
+                    html += `<div class="flex items-center justify-between gap-6 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                }
+            });
+            html += '</div></div>';
+            box.innerHTML = html;
         }
 
         document.getElementById('action-submit-btn').onclick = async () => {
             if (!selectedTarget) return;
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: selectedTarget });
-            elActionPanel.classList.add('hidden'); currentActionFilter = null; renderPlayerList(); showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-green-400");
+            elActionPanel.classList.add('hidden'); 
+            showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-green-400");
+            if(gameState.phase === 'night_action') renderNightStatus();
         };
 
         document.getElementById('action-skip-btn').onclick = async () => {
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: "SKIP" });
-            elActionPanel.classList.add('hidden'); currentActionFilter = null; renderPlayerList(); showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
+            elActionPanel.classList.add('hidden'); 
+            showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
+            if(gameState.phase === 'night_action') renderNightStatus();
         };
 
         function showResultPanel(desc, iconClass = "fa-info-circle", colorClass = "text-white") {
@@ -781,7 +761,6 @@
 
         document.getElementById('ready-btn').addEventListener('click', async () => { await updateDoc(doc(PLAYERS_COL, myUid), { isReady: !isReady }); });
 
-        // Host validation
         ['mafia','doctor','police','taxi','soldier'].forEach(id => { document.getElementById(`setting-${id}`).addEventListener('input', validateHostSettings); });
         function validateHostSettings() {
             if(!isHost) return;
@@ -791,18 +770,15 @@
             const totalSpecial = m + d + p + t + s; const totalPlayers = playersList.length; const citizenCount = totalPlayers - totalSpecial;
 
             const infoEl = document.getElementById('role-calc-info'); const startBtn = document.getElementById('start-game-btn');
-            let readyCount = 0; let nonHostCount = 0;
-            playersList.forEach(pl => { if (pl.uid !== myUid) { nonHostCount++; if (pl.isReady) readyCount++; } });
-
-            if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 인원수보다 많습니다!</span>`; startBtn.disabled = true; } 
-            else if (readyCount < nonHostCount && nonHostCount > 0) { infoEl.innerHTML = `<span class="text-yellow-400">대기 인원: ${readyCount}/${nonHostCount} (강제 시작 가능)</span>`; startBtn.disabled = false; } 
-            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시작 가능! (시민 ${citizenCount}명 자동 배정)</span>`; startBtn.disabled = false; }
+            
+            if (totalSpecial > totalPlayers) { infoEl.innerHTML = `<span class="text-red-400"><i class="fas fa-exclamation-triangle"></i> 특수 직업이 전체 인원보다 많습니다!</span>`; startBtn.disabled = true; } 
+            else { infoEl.innerHTML = `<span class="text-green-400"><i class="fas fa-check"></i> 시민 ${citizenCount}명 자동 배정 예정 (강제 시작 가능)</span>`; startBtn.disabled = false; }
         }
 
         // Host Engine
         document.getElementById('start-game-btn').addEventListener('click', async () => {
             if (!isHost || document.getElementById('start-game-btn').disabled) return;
-            if (isTransitioning) return;
+            
             const m = parseInt(document.getElementById('setting-mafia').value); const d = parseInt(document.getElementById('setting-doctor').value);
             const p = parseInt(document.getElementById('setting-police').value); const t = parseInt(document.getElementById('setting-taxi').value);
             const s = parseInt(document.getElementById('setting-soldier').value);
@@ -814,15 +790,8 @@
             pool.sort(() => Math.random() - 0.5);
 
             for (let i = 0; i < playersList.length; i++) await updateDoc(doc(PLAYERS_COL, playersList[i].uid), { role: pool[i], isAlive: true, isReady: false });
-            
-            // 즉시 종료 조건 검사 (마피아가 너무 많게 설정된 경우 시작하자마자 종료)
-            if (m >= (pool.length - m)) {
-                await changePhase('game_over', 0, "시작과 동시에 마피아가 도시를 장악했습니다. (마피아 수 ≥ 시민 수)\n💀 마피아팀의 승리! 💀");
-                return;
-            }
-
-            await sysChat("===== 핏빛 밤이 시작됩니다 =====");
-            await changePhase('day_discuss', 180, "아침이 밝았습니다.\n토론을 통해 마피아를 색출하세요.");
+            await sysChat("===== 게임이 시작되었습니다 =====");
+            await changePhase('day_discuss', 180, "아침이 밝았습니다.\n자신의 직업을 확인하고, 토론을 통해 마피아를 색출하세요.");
         });
 
         async function wipeChatData() {
@@ -836,34 +805,40 @@
             await sysChat("방장이 게임을 초기화했습니다."); await changePhase('lobby', 0, "새 게임을 준비합니다.");
         });
 
-        document.getElementById('host-quick-skip-btn').addEventListener('click', () => { if (isHost) executePhaseTransition(); });
+        // Skip Action logic
+        document.getElementById('host-quick-skip-btn').addEventListener('click', () => { 
+            if (isHost && !isTransitioning) executePhaseTransition(); 
+        });
 
         function startHostLoop() {
             if (hostLoopInterval) clearInterval(hostLoopInterval);
             hostLoopInterval = setInterval(() => {
                 if (gameState.phase === 'lobby' || gameState.phase === 'game_over') return;
-                if (Date.now() >= gameState.phaseEndsAt) executePhaseTransition();
+                // Avoid double trigger if transition is already running
+                if (Date.now() >= gameState.phaseEndsAt && !isTransitioning) {
+                    executePhaseTransition();
+                }
             }, 1000);
         }
 
+        // Extremely robust phase transition lock to fix skipping bugs
         async function executePhaseTransition() {
-            // 중복 스킵/실행 방지 락(Lock)
             if (isTransitioning) return;
             isTransitioning = true;
-
+            
             try {
                 const p = gameState.phase;
-                if (p === 'day_discuss') { await clearActions(); await changePhase('day_vote', 30, "투표 시간이 되었습니다.\n의심되는 사람을 처형대 위에 세우세요."); } 
+                if (p === 'day_discuss') { await clearActions(); await changePhase('day_vote', 40, "투표 시간이 되었습니다.\n가장 의심되는 사람을 처형대 위에 세우세요."); } 
                 else if (p === 'day_vote') { await calculateDayVote(); } 
                 else if (p === 'day_soldier') { await calculateSoldier(); } 
-                else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n특수직업들은 대상을 지목하세요."); } 
+                else if (p === 'day_result') { if (await checkWinCondition()) return; await clearActions(); await changePhase('night_action', 30, "밤이 되었습니다.\n특수직업들은 조용히 대상을 지목하세요."); } 
                 else if (p === 'night_action') { await calculateNightActions(); } 
-                else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 180, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론하세요."); }
-            } catch (error) {
-                console.error("Phase Transition Error:", error);
+                else if (p === 'night_result') { if (await checkWinCondition()) return; await changePhase('day_discuss', 180, "아침이 밝았습니다.\n지난 밤의 흔적을 바탕으로 토론을 이어가세요."); }
+            } catch (err) {
+                console.error("Phase Transition Error: ", err);
             } finally {
-                // 연산이 모두 끝난 후 락 해제
-                isTransitioning = false;
+                // Keep the lock active for 2 seconds to absolutely prevent double-skips
+                setTimeout(() => { isTransitioning = false; }, 2000);
             }
         }
 
@@ -889,8 +864,13 @@
             if (toDie && !isTie) {
                 const targetPlayer = playersList.find(p => p.uid === toDie);
                 await updateDoc(doc(PLAYERS_COL, toDie), { isAlive: false });
-                if (targetPlayer.role === '군인') await changePhase('day_soldier', 15, `투표 결과: [${targetPlayer.name}] 처형 확정.\n하지만 그는 군인이었습니다! 죽기 직전 최후의 발악을 시도합니다.`);
-                else await changePhase('day_result', 10, `투표 결과: [${targetPlayer.name}]님이 형장의 이슬로 사라졌습니다.`);
+                
+                // Rule: Reveal identity on Day Vote Death
+                if (targetPlayer.role === '군인') {
+                    await changePhase('day_soldier', 15, `투표 결과: [${targetPlayer.name}] 처형 확정.\n하지만 그는 [군인]이었습니다! 죽기 직전 최후의 발악을 시도합니다.`);
+                } else {
+                    await changePhase('day_result', 10, `투표 결과: [${targetPlayer.name}]님이 형장의 이슬로 사라졌습니다.\n그의 정체는 [ ${targetPlayer.role} ] (이)었습니다.`);
+                }
             } else await changePhase('day_result', 10, "투표가 동률이거나 기권이 많아 아무도 처형되지 않았습니다.");
         }
 
@@ -899,7 +879,7 @@
             snap.forEach(doc => { const d = doc.data(); if (d.phase === 'day_soldier' && d.role === '군인' && d.target !== 'SKIP') sTarget = d.target; });
             if (sTarget) {
                 const p = playersList.find(x => x.uid === sTarget);
-                await changePhase('day_result', 10, `💥 탕!! 군인이 숨을 거두며 외칩니다.\n"[${p.name}]의 정체는 [${p.role}] 이다!!"`);
+                await changePhase('day_result', 10, `💥 탕!! 군인이 숨을 거두며 외칩니다.\n"[${p.name}]의 정체는 [ ${p.role} ] 이다!!"`);
             } else await changePhase('day_result', 5, "군인이 침묵을 지키며 조용히 눈을 감았습니다.");
         }
 
@@ -926,6 +906,7 @@
                 else if (mTarget === doctor) { logs = "밤사이 총성이 울렸으나, 의사의 기적적인 응급처치로 피해자가 살아났습니다."; } 
                 else {
                     deaths.push(mTarget); const dp = playersList.find(p => p.uid === mTarget);
+                    // Rule: Do NOT reveal identity on Night Death
                     logs = `🩸 밤사이 [${dp ? dp.name : '누군가'}]님이 마피아의 손에 싸늘한 주검으로 발견되었습니다.`;
                 }
             }
@@ -953,43 +934,19 @@
         }
 
         async function checkWinCondition() {
-            const snap = await getDocs(PLAYERS_COL); let mCount = 0, cCount = 0, total = 0;
-            snap.forEach(doc => { const p = doc.data(); total++; if (p.isAlive) { p.role === '마피아' ? mCount++ : cCount++; } });
+            const snap = await getDocs(PLAYERS_COL); let mCount = 0, cCount = 0;
+            snap.forEach(doc => { const p = doc.data(); if (p.isAlive) { p.role === '마피아' ? mCount++ : cCount++; } });
 
             if (mCount === 0) {
                 await changePhase('game_over', 0, "모든 마피아가 소탕되었습니다.\n🎉 시민팀의 승리! 🎉"); return true;
-            } else if (mCount >= cCount && mCount > 0) {
+            } else if (mCount >= cCount) {
                 await changePhase('game_over', 0, "마피아가 도시를 장악했습니다. (마피아 수 ≥ 시민 수)\n💀 마피아팀의 승리! 💀"); return true;
             } return false;
         }
 
-        // Chat
         document.getElementById('chat-form').addEventListener('submit', async (e) => {
             e.preventDefault(); const text = document.getElementById('chat-input').value.trim();
-            if (!text) return;
-
-            // Chat Commands (!투표, !능력)
-            if (text.startsWith('!투표 ')) {
-                const tName = text.replace('!투표 ', '').trim();
-                const targetP = playersList.find(p => p.name === tName && p.isAlive);
-                if (targetP && gameState.phase === 'day_vote' && !amIDead) {
-                    await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: targetP.uid });
-                    showToast(`[명령어] ${tName}님에게 투표했습니다.`);
-                } else { showToast("투표할 수 없는 대상이거나 투표 시간이 아닙니다."); }
-                document.getElementById('chat-input').value = ''; return;
-            }
-
-            if (text.startsWith('!능력 ')) {
-                const tName = text.replace('!능력 ', '').trim();
-                const targetP = playersList.find(p => p.name === tName && p.isAlive);
-                if (targetP && gameState.phase === 'night_action' && !amIDead && myRole !== '시민') {
-                    await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: targetP.uid });
-                    showToast(`[명령어] ${tName}님에게 능력을 사용했습니다.`);
-                } else { showToast("능력을 사용할 수 없거나 밤이 아닙니다."); }
-                document.getElementById('chat-input').value = ''; return;
-            }
-
-            if (amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked) return;
+            if (!text || amIDead || !['lobby', 'day_discuss', 'game_over'].includes(gameState.phase) || isSpamLocked) return;
 
             const now = Date.now(); chatTimestamps = chatTimestamps.filter(t => now - t < 3000); chatTimestamps.push(now);
             if (chatTimestamps.length >= 4) {
