@@ -662,6 +662,12 @@
             const icon = document.getElementById('action-icon');
             let allowed = false; let filter = p => p.isAlive && p.uid !== myUid;
 
+            // 방어 코드: playersList가 비어있다면 일시적인 데이터 지연일 수 있으므로 다시 렌더링하도록 유도
+            if (!playersList || playersList.length === 0) {
+                 setTimeout(setupActionPanel, 500);
+                 return;
+            }
+
             if (gameState.phase === 'day_vote' && !amIDead) {
                 t.textContent = "투표 시간"; d.textContent = "처형할 대상을 고르세요."; icon.innerHTML = '<i class="fas fa-gavel text-3xl"></i>'; icon.className = "inline-block p-4 rounded-full bg-orange-500/20 text-orange-400 mb-2";
                 allowed = true; filter = p => p.isAlive;
@@ -692,6 +698,7 @@
             } else {
                 filteredPlayers.forEach(p => {
                     const btn = document.createElement('div');
+                    // 높이(min-h-[50px])를 명시적으로 주어 빈 공간이 되지 않도록 함
                     btn.className = 'selectable p-3 rounded-xl bg-gray-800/80 border border-gray-600 font-bold text-sm md:text-base text-center text-white shadow-sm transition-all flex items-center justify-center min-h-[50px]';
                     btn.textContent = p.name;
                     btn.onclick = () => {
