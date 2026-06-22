@@ -400,7 +400,15 @@
         onAuthStateChanged(auth, (currentUser) => {
             if (currentUser) {
                 user = currentUser;
-                myUid = user.uid; // Always use proper user.uid
+                
+                // [수정됨] 같은 브라우저(다중 탭)에서도 각각 다른 유저로 접속할 수 있도록 세션 ID 부여
+                let tabId = sessionStorage.getItem('mafia_tab_id');
+                if (!tabId) {
+                    tabId = Math.random().toString(36).substring(2, 9);
+                    sessionStorage.setItem('mafia_tab_id', tabId);
+                }
+                myUid = user.uid + "_" + tabId; // 탭마다 고유한 UID 생성
+                
                 document.getElementById('loading-auth').style.display = 'none';
                 document.getElementById('auth-forms').style.display = 'block';
             }
@@ -535,13 +543,13 @@
                 if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) {
                     setupActionPanel();
                 }
-                if (gameState.phase === 'night_action') renderNightStatus();
+                if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) renderActionStatus();
             }, (err) => console.error(err));
 
             unsubActions = onSnapshot(ACTIONS_COL, (snapshot) => {
                 currentActions = [];
                 snapshot.forEach(doc => currentActions.push(doc.data()));
-                if (gameState.phase === 'night_action') renderNightStatus();
+                if (['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) renderActionStatus();
             }, (err) => console.error(err));
 
             unsubChat = onSnapshot(CHAT_COL, (snapshot) => {
@@ -738,7 +746,7 @@
             if (!allowed) { 
                 elActionPanel.style.display = 'none';
                 showResultPanel(amIDead ? "당신은 사망했습니다." : "특수직업의 행동을 기다리는 중입니다...", "fa-bed", "text-indigo-300"); 
-                if(gameState.phase === 'night_action') renderNightStatus();
+                if(['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) renderActionStatus();
                 return; 
             }
 
@@ -778,22 +786,48 @@
             }
         }
 
-        function renderNightStatus() {
+        // [수정됨] 낮 투표 현황과 밤 행동 현황을 모두 보여주도록 통합 및 업그레이드
+        function renderActionStatus() {
             const box = document.getElementById('dynamic-status-box');
-            if (gameState.phase !== 'night_action') { box.innerHTML = ''; return; }
+            if (!['day_vote', 'night_action', 'day_soldier'].includes(gameState.phase)) { 
+                box.innerHTML = ''; 
+                return; 
+            }
 
-            const aliveRoles = new Set(playersList.filter(p => p.isAlive && p.role !== '시민').map(p => p.role));
-            let html = '<div class="inline-block bg-gray-900/80 p-5 md:p-6 rounded-3xl border border-indigo-500/30 text-left min-w-[260px] shadow-2xl"><div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3.5">';
+            let html = '<div class="inline-block bg-gray-900/80 p-5 md:p-6 rounded-3xl border border-indigo-500/30 text-left min-w-[260px] shadow-2xl">';
 
-            ['마피아', '의사', '경찰', '택시 기사'].forEach(r => {
-                if (aliveRoles.has(r)) {
-                    const isDone = currentActions.some(a => a.role === r);
+            if (gameState.phase === 'day_vote') {
+                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-check-to-slot mr-2 animate-pulse"></i>투표 진행 현황</div><div class="space-y-3.5 max-h-48 overflow-y-auto pr-2">';
+                
+                const alivePlayers = playersList.filter(p => p.isAlive);
+                alivePlayers.forEach(p => {
+                    const isDone = currentActions.some(a => a.uid === p.uid && a.phase === 'day_vote');
                     const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
                     const color = isDone ? 'text-gray-200' : 'text-gray-500';
-                    const textStatus = isDone ? '선택 완료' : '고민 중...';
-                    html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
-                }
-            });
+                    const textStatus = isDone ? '완료' : '고민 중...';
+                    html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${p.name}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                });
+                
+            } else if (gameState.phase === 'night_action') {
+                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-satellite-dish mr-2 animate-pulse"></i>특수 직업 행동 현황</div><div class="space-y-3.5">';
+                const aliveRoles = new Set(playersList.filter(p => p.isAlive && p.role !== '시민').map(p => p.role));
+                ['마피아', '의사', '경찰', '택시 기사'].forEach(r => {
+                    if (aliveRoles.has(r)) {
+                        const isDone = currentActions.some(a => a.role === r && a.phase === 'night_action');
+                        const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
+                        const color = isDone ? 'text-gray-200' : 'text-gray-500';
+                        const textStatus = isDone ? '완료' : '고민 중...';
+                        html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>${r}</span> <span class="flex items-center gap-2">${textStatus} ${icon}</span></div>`;
+                    }
+                });
+            } else if (gameState.phase === 'day_soldier') {
+                html += '<div class="text-xs md:text-sm text-indigo-400 font-black mb-4 border-b border-gray-700/50 pb-2 tracking-wide"><i class="fas fa-bomb mr-2 animate-pulse"></i>군인 최후의 행동</div><div class="space-y-3.5">';
+                const isDone = currentActions.some(a => a.role === '군인' && a.phase === 'day_soldier');
+                const icon = isDone ? '<i class="fas fa-check-circle text-emerald-400 text-lg shadow-sm"></i>' : '<i class="fas fa-spinner fa-spin text-gray-500 text-lg"></i>';
+                const color = isDone ? 'text-gray-200' : 'text-gray-500';
+                html += `<div class="flex items-center justify-between gap-8 ${color} font-bold text-sm"><span>군인</span> <span class="flex items-center gap-2">${isDone ? '완료' : '선택 중...'} ${icon}</span></div>`;
+            }
+
             html += '</div></div>';
             box.innerHTML = html;
         }
@@ -803,7 +837,7 @@
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: selectedTarget });
             elActionPanel.style.display = 'none'; 
             showResultPanel("선택이 완료되었습니다.<br>다른 플레이어들을 기다립니다.", "fa-check-circle", "text-emerald-400");
-            if(gameState.phase === 'night_action') renderNightStatus();
+            renderActionStatus();
         };
 
         document.getElementById('action-skip-btn').onclick = async () => {
@@ -811,7 +845,7 @@
             await setDoc(doc(ACTIONS_COL, myUid), { uid: myUid, phase: gameState.phase, role: myRole, target: "SKIP" });
             elActionPanel.style.display = 'none'; 
             showResultPanel("이번 턴 행동을 건너뛰었습니다.", "fa-fast-forward", "text-gray-400");
-            if(gameState.phase === 'night_action') renderNightStatus();
+            renderActionStatus();
         };
 
         function showResultPanel(desc, iconClass = "fa-info-circle", colorClass = "text-white") {
@@ -874,11 +908,29 @@
             if (isHost && !isTransitioning) executePhaseTransition(); 
         });
 
+        // [수정됨] 모든 유저가 행동을 마치면 즉시 턴을 넘기는 자동 패스(Auto-Advance) 로직 추가
         function startHostLoop() {
             if (hostLoopInterval) clearInterval(hostLoopInterval);
             hostLoopInterval = setInterval(() => {
                 if (gameState.phase === 'lobby' || gameState.phase === 'game_over') return;
-                if (Date.now() >= gameState.phaseEndsAt && !isTransitioning) {
+                
+                let isAllActionDone = false;
+                const p = gameState.phase;
+                const currentPhaseActions = currentActions.filter(a => a.phase === p).length;
+
+                // 각 페이즈별 예상 완료 인원 계산
+                if (p === 'day_vote') {
+                    const aliveCount = playersList.filter(pl => pl.isAlive).length;
+                    if (aliveCount > 0 && currentPhaseActions >= aliveCount) isAllActionDone = true;
+                } else if (p === 'night_action') {
+                    const aliveSpecialCount = new Set(playersList.filter(pl => pl.isAlive && pl.role !== '시민').map(pl => pl.role)).size;
+                    if (aliveSpecialCount > 0 && currentPhaseActions >= aliveSpecialCount) isAllActionDone = true;
+                } else if (p === 'day_soldier') {
+                    if (currentPhaseActions >= 1) isAllActionDone = true;
+                }
+
+                // 타이머가 종료되거나, 모든 참가자가 행동을 완료했을 경우 즉시 다음 페이즈로 전환
+                if ((Date.now() >= gameState.phaseEndsAt || isAllActionDone) && !isTransitioning) {
                     executePhaseTransition();
                 }
             }, 1000);
